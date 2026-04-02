@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About PhotoSort — The Privacy-First AI Photo Organizer</title>
+  <meta name="description" content="PhotoSort is a browser-based AI photo organizer built on the principle that your photos should never leave your device. Learn about our mission and approach.">
+  <link rel="canonical" href="https://photosort.app/about">
+  <meta property="og:title" content="About PhotoSort — The Privacy-First AI Photo Organizer">
+  <meta property="og:description" content="PhotoSort is a browser-based AI photo organizer built on the principle that your photos should never leave your device. Learn about our mission and approach.">
+  <meta property="og:url" content="https://photosort.app/about">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PhotoSort">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="About PhotoSort — The Privacy-First AI Photo Organizer">
+  <meta name="twitter:description" content="PhotoSort is a browser-based AI photo organizer built on the principle that your photos should never leave your device. Learn about our mission and approach.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/marketing.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PhotoSort",
+    "url": "https://photosort.app",
+    "description": "PhotoSort is a privacy-first, browser-based AI photo organizer. Photos never leave your device. One-time purchase, no subscription.",
+    "foundingDate": "2025",
+    "sameAs": [],
+    "product": {
+      "@type": "SoftwareApplication",
+      "name": "PhotoSort",
+      "applicationCategory": "MultimediaApplication",
+      "operatingSystem": "Chrome, Edge",
+      "offers": {
+        "@type": "Offer",
+        "price": "9.99",
+        "priceCurrency": "EUR"
+      }
+    }
+  }
+  </script>
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <div class="nav-container">
+        <a class="nav-logo" href="/">PhotoSort</a>
+        <ul class="nav-links">
+          <li><a href="/features">Features</a></li>
+          <li><a href="/how-it-works">How It Works</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/" class="btn-nav-cta">Get Started →</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="page-hero">
+      <div class="container">
+        <h1>About PhotoSort</h1>
+        <p class="page-hero-sub">Built for everyone who has thousands of photos buried in a folder called "Camera Roll" and never has time to sort them.</p>
+      </div>
+    </section>
+
+    <!-- Mission -->
+    <section class="section">
+      <div class="container about-content">
+
+        <div class="about-block">
+          <h2>Why PhotoSort Exists</h2>
+          <p>Most people have a photo problem. Not a lack of photos — quite the opposite. After years of smartphones, every person has thousands, sometimes tens of thousands, of photos sitting in an unsorted dump on their computer or hard drive. There are trips buried under birthday parties buried under random blurry photos of dinner. Finding a specific memory takes scrolling through years of noise.</p>
+          <p>The tools that exist to solve this problem fall into two camps: cloud services that require you to upload everything (and trust someone else with your memories), or professional tools like Lightroom that are built for photographers and have steep learning curves.</p>
+          <p>PhotoSort was built for everyone in between — the person with 15,000 photos from the last decade who just wants them organized by event without handing their entire photo library to a tech company.</p>
+        </div>
+
+        <div class="about-block">
+          <h2>Our Philosophy</h2>
+
+          <h3>Privacy First</h3>
+          <p>Your photos are some of the most personal data you own. They contain your location history, your family's faces, the private moments of your life. We built PhotoSort on a non-negotiable principle: <strong>your photos never leave your device</strong>.</p>
+          <p>The AI that analyzes your photos (CLIP) runs entirely inside your browser using WebAssembly. It was downloaded to your computer once — from there, it processes your images in local memory, with no network connection required. The only external requests PhotoSort makes are GPS coordinates to OpenStreetMap for place names, and short text descriptions to Gemini for folder naming. Your actual photos are never transmitted anywhere.</p>
+
+          <h3>No Subscription Trap</h3>
+          <p>The subscription model has captured almost every software category. Pay monthly or lose access to your data. That model makes sense for services that have ongoing costs to serve you — like cloud storage that actually stores your files. It makes no sense for a tool that runs locally on your hardware.</p>
+          <p>PhotoSort costs €9.99 once. That covers the development, the Gemini API costs for naming your sessions, and all future updates. There is no premium tier, no per-photo pricing, and no account required to keep using it after purchase.</p>
+
+          <h3>No Lock-In</h3>
+          <p>When you organize photos with PhotoSort, the output is just folders and files on your hard drive. Standard folder names, standard file formats. You can open them in Windows Explorer, macOS Finder, or any photo viewer. There's no proprietary database, no catalog file, no library format that only PhotoSort can read. Your organized photos are yours — usable with any tool, forever.</p>
+
+          <h3>Non-Destructive</h3>
+          <p>PhotoSort never modifies, moves, or deletes your original files. It creates copies in the organized structure. If you change your mind, delete the output. Your originals are untouched. This is how file management tools should work.</p>
+        </div>
+
+        <div class="about-block">
+          <h2>Who PhotoSort Is For</h2>
+          <p>PhotoSort is not for professional photographers. Professionals have Lightroom, Capture One, and raw editing workflows. They need color grading, rating systems, and plugin ecosystems.</p>
+          <p>PhotoSort is for everyone else:</p>
+          <ul class="about-list">
+            <li>The parent with 8 years of iPhone photos dumped into a single folder</li>
+            <li>The traveler who came home from a gap year with 12,000 photos and never sorted them</li>
+            <li>The person inheriting a hard drive full of family photos from a relative</li>
+            <li>Anyone who switched phones or computers and ended up with multiple disorganized photo archives</li>
+            <li>Someone who just wants their photos organized by year and event without learning a complex tool</li>
+          </ul>
+          <p>If you can use a web browser, you can use PhotoSort.</p>
+        </div>
+
+        <div class="about-block">
+          <h2>How It's Built</h2>
+          <p>PhotoSort is a browser application that combines several open-source and public technologies to do something that previously required expensive desktop software or cloud uploads:</p>
+
+          <h3>CLIP — Visual AI in the Browser</h3>
+          <p>The core of PhotoSort's AI is the <strong>CLIP model</strong> (Contrastive Language–Image Pretraining), originally developed by OpenAI. PhotoSort uses the <code>Xenova/clip-vit-base-patch32</code> checkpoint — a version quantized and optimized for browser inference by Hugging Face.</p>
+          <p>CLIP runs via <strong>Transformers.js</strong>, a JavaScript port of the Hugging Face Transformers library that compiles models to ONNX format and executes them in WebAssembly. This is what makes it possible to run a real neural network entirely inside a browser tab without any server-side compute.</p>
+          <p>CLIP is used for two tasks in PhotoSort: filtering out screenshots and junk photos before sorting, and classifying the content of each photo into event categories.</p>
+
+          <h3>Gemini — Human-Readable Naming</h3>
+          <p>Once photos are grouped into sessions and classified, PhotoSort uses <strong>Google Gemini</strong> to generate human-readable folder names. Gemini receives only a short text prompt describing the session (date, location, content type) — never any image data. The result is a folder name like "Skiing in the Alps" or "Weekend in Barcelona" instead of a generic date stamp.</p>
+
+          <h3>OpenStreetMap Nominatim — Free Geocoding</h3>
+          <p>For trip detection and location-based naming, PhotoSort uses <strong>OpenStreetMap Nominatim</strong> to convert GPS coordinates from photo EXIF data into readable place names. Nominatim is a free, open API maintained by the OpenStreetMap community. No API key required, no account needed, no data sold.</p>
+
+          <h3>File System Access API</h3>
+          <p>The browser's <strong>File System Access API</strong> (available in Chrome and Edge) allows PhotoSort to read your photo library and write the organized output directly on your local disk — with explicit, revocable permissions — without uploading anything. This API is what makes a locally private photo organizer possible in a web browser.</p>
+        </div>
+
+        <div class="about-block">
+          <h2>What Makes PhotoSort Different</h2>
+
+          <div class="differentiators-grid">
+            <div class="differentiator">
+              <h3>vs. Google Photos</h3>
+              <p>Google Photos requires uploading all your photos to Google's servers. PhotoSort keeps everything local. PhotoSort also produces an organized folder structure on disk — Google Photos does not sort your files into folders, it creates albums inside its own cloud interface.</p>
+            </div>
+            <div class="differentiator">
+              <h3>vs. Adobe Lightroom</h3>
+              <p>Lightroom is a professional tool with a $120/year subscription and a learning curve designed for photographers. PhotoSort is a single-purpose tool that does one thing well: organizing your existing photo archive. No editing, no catalog management, no subscription.</p>
+            </div>
+            <div class="differentiator">
+              <h3>vs. Manual Sorting</h3>
+              <p>Sorting 10,000 photos by hand — deciding which trip each photo belongs to, creating folders, moving files — takes days. PhotoSort does it in an hour, with AI-generated names that are better than most people would come up with manually.</p>
+            </div>
+            <div class="differentiator">
+              <h3>vs. Other AI Organizers</h3>
+              <p>Most AI photo organizers are cloud-based: they upload your photos to their servers, run AI inference there, and store your organized library in their system. PhotoSort runs the AI locally and produces a standard folder structure you own completely.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta-section">
+      <div class="container cta-inner">
+        <h2>Try It On Your Photo Library</h2>
+        <p>The full AI analysis runs for free — see the proposed folder structure before you pay.</p>
+        <a href="/" class="btn-primary btn-large">Get PhotoSort for €9.99 →</a>
+        <p class="cta-sub">One-time purchase. No subscription. Your photos never leave your device.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="nav-logo">PhotoSort</span>
+        <p>AI photo organization that respects your privacy.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Learn</h4>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Compare</h4>
+          <ul>
+            <li><a href="/compare/vs-google-photos">vs Google Photos</a></li>
+            <li><a href="/compare/vs-adobe-lightroom">vs Adobe Lightroom</a></li>
+            <li><a href="/compare/vs-apple-photos">vs Apple Photos</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 PhotoSort &middot; <a href="/about">About</a> &middot; <a href="/faq">FAQ</a> &middot; <a href="/privacy">Privacy</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

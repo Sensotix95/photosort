@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- SEO: Title & Meta -->
+  <title>Photo Sorter — Automatically Organize Your Photos into Folders | PhotoSort</title>
+  <meta name="description" content="Free AI photo sorting tool that automatically organizes thousands of photos by date, location, and events into smart folders. Photos never leave your computer — no cloud upload needed.">
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://photosort.app/">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PhotoSort — Automatically Organize Your Photos with AI">
+  <meta property="og:description" content="Sort thousands of messy photos into smart named folders automatically. AI runs in your browser — photos never leave your computer.">
+  <meta property="og:image" content="https://photosort.app/og-image.png">
+  <meta property="og:url" content="https://photosort.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PhotoSort">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PhotoSort — AI Photo Organizer">
+  <meta name="twitter:description" content="Sort thousands of messy photos into smart named folders. AI runs in your browser — no cloud upload.">
+  <meta name="twitter:image" content="https://photosort.app/og-image.png">
+
+  <!-- Google Search Console verification -->
+  <meta name="google-site-verification" content="IFseDnK0nZPfWnRteeTBKAaPcvV5_F1tArY4uLAKdOQ" />
+
+  <!-- Performance: Preconnect -->
+  <link rel="preconnect" href="https://nominatim.openstreetmap.org">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/marketing.css">
+
+  <!-- Structured Data: SoftwareApplication -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "PhotoSort",
+    "description": "AI-powered photo sorting tool that automatically organizes photos into named folders by date, location, and detected events — trips, weddings, concerts. Runs entirely in your browser with no cloud upload.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Windows, macOS, Linux",
+    "url": "https://photosort.app",
+    "offers": {
+      "@type": "Offer",
+      "price": "9.99",
+      "priceCurrency": "EUR",
+      "description": "One-time purchase, unlimited use"
+    }
+  }
+  </script>
+
+  <!-- Structured Data: Organization -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "PhotoSort",
+    "url": "https://photosort.app",
+    "description": "Creator of PhotoSort, an AI photo organizer that sorts photos into folders by date, location, and events — running locally in your browser with no cloud upload."
+  }
+  </script>
+
+  <!-- Structured Data: FAQPage -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does PhotoSort organize my photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort uses AI to analyze your photos and automatically sorts them into named folders organized by date, location, and detected events like trips, concerts, or weddings. It creates a clean Year/Month-EventName folder structure."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do my photos get uploaded to the cloud?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Your photos never leave your computer. The AI classification model (CLIP) runs directly in your browser. Only anonymized metadata — dates and location names — is used for event naming. Your actual photo files stay on your device at all times."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a free photo organizer that works offline?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort is a one-time purchase (€9.99) with no subscription. After the initial AI model download (~350 MB, cached permanently on your computer), it processes photos without any internet connection."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I sort photos by date automatically?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. PhotoSort reads EXIF date metadata from your photos and automatically sorts them into Year/Month folder structures. It also detects and names events and trips within each time period."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What photo formats does PhotoSort support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort supports JPEG, PNG, HEIC, WebP, and TIFF image formats, plus common video formats including MP4, MOV, AVI, MKV, and M4V."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Will my original photos be deleted or moved?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. PhotoSort always creates a copy of your photos in the new organized folder structure. Your original photos are never moved, renamed, or deleted. You review the proposed structure before anything is copied."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which browsers does PhotoSort work in?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort requires Google Chrome or Microsoft Edge (version 86 or newer) because it uses the File System Access API to read and write files locally without uploading them. Firefox does not yet support this API."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is PhotoSort different from Google Photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Unlike Google Photos, PhotoSort never uploads your photos to any server. It runs entirely in your browser, creates an organized local folder structure you actually own, and costs a one-time €9.99 with no ongoing subscription."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+<!-- Browser compatibility warning (hidden by default) -->
+<div id="browser-warning" class="hidden">
+  <strong>Browser not supported</strong><br>
+  PhotoSort requires Chrome or Edge (version 86+) for local file access.<br>
+  Firefox does not yet support the File System Access API.
+</div>
+
+<!-- ── Gate: landing / buy page ──────────────────────────────────────────── -->
+<div id="screen-gate" class="screen">
+
+  <!-- Site navigation -->
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <div class="nav-container">
+        <a class="nav-logo" href="/">PhotoSort</a>
+        <ul class="nav-links">
+          <li><a href="/features">Features</a></li>
+          <li><a href="/how-it-works">How It Works</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/faq">FAQ</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <div class="container" style="max-width:640px; padding-top:2rem;">
+
+    <!-- Hero -->
+    <h1 class="gate-h1">Automatically Sort and Organize Your Photos with AI</h1>
+    <p class="tagline">Your photos never leave your computer. AI organizes thousands of pictures into smart named folders — trips, weddings, concerts — automatically.</p>
+
+    <div class="features">
+      <div class="feature">
+        <div class="icon">🔒</div>
+        <h3>100% Private</h3>
+        <p>AI runs in your browser. Photos never upload anywhere.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">🤖</div>
+        <h3>Smart Events</h3>
+        <p>Trips, concerts, weddings — detected and named automatically.</p>
+      </div>
+      <div class="feature">
+        <div class="icon">💳</div>
+        <h3>Pay Once</h3>
+        <p>No subscription. Buy once, use forever.</p>
+      </div>
+    </div>
+
+    <div class="price-card">
+      <div class="price-amount">€9.99</div>
+      <p>One-time purchase · unlimited use</p>
+      <button id="btn-buy" class="btn btn-primary">Get PhotoSort</button>
+      <p class="hint">Already purchased? <a href="#" id="link-already-bought">Open app →</a></p>
+    </div>
+
+    <div class="how-it-works">
+      <h2>How PhotoSort Works</h2>
+      <ol>
+        <li>Select your photos folder — no uploads, ever</li>
+        <li>AI model runs in your browser (first run downloads ~350 MB, cached forever)</li>
+        <li>Review the proposed folder structure before anything is copied</li>
+        <li>Confirm — your photos are copied to a new organised folder</li>
+      </ol>
+    </div>
+
+    <!-- Why PhotoSort section -->
+    <section class="why-section" aria-label="Why choose PhotoSort">
+      <h2>Why Choose PhotoSort Over Other Photo Organizers?</h2>
+      <div class="why-grid">
+        <div class="why-item">
+          <span class="why-icon">🏠</span>
+          <div>
+            <strong>No cloud required</strong>
+            <p>Unlike Google Photos or iCloud, your photos never leave your device. No monthly storage fees, no privacy concerns.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <span class="why-icon">⚡</span>
+          <div>
+            <strong>Actually automatic</strong>
+            <p>Unlike manual tools or basic file managers, PhotoSort names your folders intelligently — "Portugal", "Wedding", "Concert" — not just "2024-07".</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <span class="why-icon">🎯</span>
+          <div>
+            <strong>Built for normal people</strong>
+            <p>Not a complex DAM system for professional photographers. PhotoSort is for anyone with thousands of messy photos on their computer.</p>
+          </div>
+        </div>
+        <div class="why-item">
+          <span class="why-icon">🔓</span>
+          <div>
+            <strong>No lock-in</strong>
+            <p>Your organised photos are just regular folders on your computer. No proprietary format, no app dependency.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Result example -->
+    <section class="result-section" aria-label="Example output">
+      <h2>What Your Photo Library Looks Like After PhotoSort</h2>
+      <div class="folder-example">
+        <pre><code>Photos/
+├── 2024/
+│   ├── 07-Portugal/          (142 photos)
+│   ├── 08-Wedding/           (89 photos)
+│   ├── 09-Berlin/            (67 photos)
+│   └── 12-Christmas/         (54 photos)
+├── 2025/
+│   ├── 03-Barcelona/         (201 photos)
+│   ├── 06-Graduation/        (38 photos)
+│   └── 09-Hiking/            (73 photos)
+└── 2025/Videos/              (12 videos)</code></pre>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="faq-section" id="faq" aria-label="Frequently asked questions">
+      <h2>Frequently Asked Questions</h2>
+
+      <div class="faq-list">
+        <div class="faq-item">
+          <h3>Do my photos get uploaded to the cloud?</h3>
+          <p>No. Your photos never leave your computer. The AI classification model runs directly in your browser. Only anonymized metadata (dates, location names) is sent for event naming — your actual photo files stay on your device.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Will my original photos be deleted or moved?</h3>
+          <p>Never. PhotoSort copies your photos into the new organized structure. Your originals are untouched. You review the full proposed folder tree before anything is copied.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Can I sort photos by date automatically?</h3>
+          <p>Yes. PhotoSort reads EXIF date metadata from your photos and creates Year/Month folder structures automatically. It also detects named events within each time period.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>What photo formats are supported?</h3>
+          <p>PhotoSort supports JPEG, PNG, HEIC, WebP, and TIFF images, plus MP4, MOV, AVI, MKV, and M4V videos.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Which browsers work with PhotoSort?</h3>
+          <p>PhotoSort requires Google Chrome or Microsoft Edge (version 86+). It uses the File System Access API to read and write files locally. Firefox does not yet support this API.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>Is this a subscription or one-time payment?</h3>
+          <p>One-time payment of €9.99. No monthly fees, no annual renewal, no account required. Pay once, use forever.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How is PhotoSort different from Google Photos?</h3>
+          <p>Google Photos uploads your photos to Google's servers. PhotoSort keeps everything on your computer. You also get a real folder structure you own — not just albums in an app. See our <a href="/compare/vs-google-photos">full comparison with Google Photos</a>.</p>
+        </div>
+
+        <div class="faq-item">
+          <h3>How does the AI detect trips and events?</h3>
+          <p>PhotoSort combines GPS metadata, timestamps, and visual content analysis (CLIP AI) to group photos into sessions. It detects when you were away from home, classifies events by content (weddings, concerts, outdoor activities), and uses Gemini AI to suggest meaningful folder names.</p>
+        </div>
+      </div>
+
+      <p style="text-align:center; margin-top:1.5rem;">
+        <a href="/faq" class="faq-more-link">See all frequently asked questions →</a>
+      </p>
+    </section>
+
+    <!-- Test access (internal, hidden) -->
+    <p style="margin-top:2.5rem; text-align:center;">
+      <a href="#" id="link-test-access" style="font-size:0.8rem; color:var(--muted);">Test access</a>
+    </p>
+    <div id="test-access-form" style="display:none; max-width:280px; margin:0.75rem auto 0; text-align:center;">
+      <input id="test-password-input" type="password" placeholder="Password"
+        style="width:100%; padding:0.5rem 0.75rem; border:1.5px solid var(--border); border-radius:8px; font-size:0.9rem; outline:none; margin-bottom:0.5rem;">
+      <button id="btn-test-login" class="btn btn-secondary" style="width:100%;">Enter</button>
+      <p id="test-login-error" style="display:none; color:#dc2626; font-size:0.82rem; margin-top:0.4rem;">Wrong password.</p>
+    </div>
+
+  </div><!-- /container -->
+
+  <!-- Site footer -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="nav-logo">PhotoSort</span>
+        <p>AI photo organization that respects your privacy.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Learn</h4>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Compare</h4>
+          <ul>
+            <li><a href="/compare/vs-google-photos">vs Google Photos</a></li>
+            <li><a href="/compare/vs-adobe-lightroom">vs Adobe Lightroom</a></li>
+            <li><a href="/compare/vs-apple-photos">vs Apple Photos</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 PhotoSort &middot; <a href="/about">About</a> &middot; <a href="/faq">FAQ</a></p>
+    </div>
+  </footer>
+
+</div><!-- /screen-gate -->
+
+<!-- ── App: main organizer ────────────────────────────────────────────────── -->
+<div id="screen-app" class="screen hidden">
+  <div class="app-header">
+    <span class="logo">PhotoSort</span>
+  </div>
+  <div class="container">
+
+    <div class="card">
+      <h2>1. Where are your photos?</h2>
+      <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
+        Select the folder containing your unsorted photos. Nothing will be changed here — photos are only read, never moved or deleted.
+      </p>
+      <div class="folder-row">
+        <button id="btn-pick-source" class="btn btn-secondary">Choose source folder</button>
+        <span id="source-folder-name" class="folder-name">None selected</span>
+      </div>
+    </div>
+
+    <div id="step-dest" class="card hidden">
+      <h2>2. Where should the sorted photos go?</h2>
+      <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
+        Select an empty folder (or create a new one) where the organised copy will be saved. Your originals stay untouched.
+      </p>
+      <div class="folder-row">
+        <button id="btn-pick-dest" class="btn btn-secondary">Choose destination folder</button>
+        <span id="dest-folder-name" class="folder-name">None selected</span>
+      </div>
+      <div class="home-city-row">
+        <label for="home-city-input">Your home city (optional):</label>
+        <input id="home-city-input" type="text" placeholder="e.g. Vienna" autocomplete="off">
+      </div>
+    </div>
+
+    <div style="text-align:right; margin-top:0.5rem;">
+      <button id="btn-start" class="btn btn-primary" disabled>Start organising →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── Working screen (used for both processing and copying) ──────────────── -->
+<div id="screen-process" class="screen hidden">
+  <div class="card">
+    <div class="spinner"></div>
+    <p id="status-text">Initialising…</p>
+    <div class="progress-track">
+      <div id="progress-bar"></div>
+    </div>
+    <p id="progress-label"></p>
+  </div>
+</div>
+
+<!-- ── Preview screen ─────────────────────────────────────────────────────── -->
+<div id="screen-preview" class="screen hidden">
+  <div class="container">
+    <h2>Review your organised photos</h2>
+    <p class="subtitle">Click any folder to collapse it. Your originals are never moved or deleted.</p>
+
+    <div class="preview-actions">
+      <button id="btn-confirm" class="btn btn-primary">Confirm &amp; copy files →</button>
+      <button id="btn-cancel"  class="btn btn-ghost">← Back</button>
+    </div>
+
+    <div class="card">
+      <div id="preview-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Done screen ────────────────────────────────────────────────────────── -->
+<div id="screen-done" class="screen hidden">
+  <div class="card">
+    <div class="checkmark">✅</div>
+    <h2>Done!</h2>
+    <p>
+      <strong id="done-count">0</strong> files have been organised into
+      <strong id="done-folder">your folder</strong>.
+      Your originals are untouched.
+    </p>
+    <button id="btn-again" class="btn btn-secondary">Organise another folder</button>
+  </div>
+</div>
+
+<script type="module" src="/js/main.js"></script>
+<script>
+  // "Already purchased" link — show app if token exists, else just reload
+  document.getElementById('link-already-bought')?.addEventListener('click', e => {
+    e.preventDefault();
+    if (localStorage.getItem('photosorter_token')) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+      document.getElementById('screen-app').classList.remove('hidden');
+    } else {
+      alert('No purchase found. Please buy PhotoSort first.');
+    }
+  });
+</script>
+
+</body>
+</html>

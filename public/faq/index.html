@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Frequently Asked Questions — PhotoSort Photo Organizer</title>
+  <meta name="description" content="Find answers to common questions about PhotoSort: privacy, compatibility, supported formats, how AI works, and more.">
+  <link rel="canonical" href="https://photosort.app/faq">
+  <meta property="og:title" content="Frequently Asked Questions — PhotoSort Photo Organizer">
+  <meta property="og:description" content="Find answers to common questions about PhotoSort: privacy, compatibility, supported formats, how AI works, and more.">
+  <meta property="og:url" content="https://photosort.app/faq">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="PhotoSort">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Frequently Asked Questions — PhotoSort Photo Organizer">
+  <meta name="twitter:description" content="Find answers to common questions about PhotoSort: privacy, compatibility, supported formats, how AI works, and more.">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="stylesheet" href="/css/marketing.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How does PhotoSort organize photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort reads your photos locally in the browser, analyzes them with the CLIP AI model, groups them into sessions based on time and location, and arranges them into a Year/Month-EventName folder structure. For example: 2025/08 - Rome Trip or 2025/12 - Christmas at Home. Originals are never moved — only copies are created in the organized output folder."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Do my photos get uploaded to the cloud?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. PhotoSort's AI (CLIP) runs entirely inside your browser using WebAssembly. Your photos are never uploaded to any server. The only external requests made are: GPS coordinates sent to OpenStreetMap for reverse geocoding (no photos), and a short text description sent to Gemini for folder naming (no photos). Your actual image files never leave your computer."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which browsers work with PhotoSort?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort requires Google Chrome (version 86 or later) or Microsoft Edge (version 86 or later). These are the only browsers that currently support the File System Access API, which PhotoSort uses to read your photos and write the organized output — all without uploading anything. Firefox and Safari do not support this API and are not compatible."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What photo formats does PhotoSort support?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort supports JPEG, PNG, HEIC, WebP, and TIFF for images. For videos, it supports MP4, MOV, AVI, MKV, and M4V. RAW formats like CR2, ARW, NEF, and DNG are not currently supported but are planned for a future update."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Will my original photos be deleted or moved?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. PhotoSort is completely non-destructive. It only creates copies of your photos in the output folder you choose. Your original files are never moved, renamed, or deleted. If you don't like the result, simply delete the output folder — your originals remain exactly where they were."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How many photos can PhotoSort handle?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort can handle libraries of tens of thousands of photos. There is no hard limit. Processing time scales linearly — a library of 5,000 photos takes roughly 15–45 minutes depending on your computer's speed, while 20,000 photos might take 1–3 hours. The actual file copying after the AI analysis is fast and limited only by your disk speed."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does the AI model need to download 350MB?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "The CLIP model (Xenova/clip-vit-base-patch32) is a neural network with millions of parameters that understands the visual content of photos. Even in its compressed, quantized form optimized for browser use, it's approximately 350MB. This download happens once on your first use and is permanently cached in your browser. After that, PhotoSort works completely offline — no re-download, no internet connection needed for AI processing."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I sort photos by date automatically?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Date-based sorting is the foundation of PhotoSort's organization. It reads the EXIF DateTimeOriginal field from every photo to get the exact capture date. Photos are organized into Year/Month folders first. Within each month, they're further grouped into named events. If EXIF data is missing, PhotoSort uses the file's last-modified date as a fallback."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What are 'sessions' and how does PhotoSort group them?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "A session is a group of photos taken within a continuous 4-hour window. If two consecutive photos (sorted by time) have a gap of more than 4 hours between them, PhotoSort starts a new session. Sessions map naturally to real-world events: a birthday party, an afternoon hike, a day in a new city. Each session becomes a separate named folder in your output."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does trip detection work?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "When you set up PhotoSort, you enter your home city. PhotoSort extracts GPS coordinates from your photos' EXIF data and uses reverse geocoding (via OpenStreetMap) to determine the location of each session. Sessions that took place outside your home city area are classified as trips. Sessions in your home city area are classified as local events. This affects both the folder labels and the Gemini-generated names."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What types of events does PhotoSort detect?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort uses the CLIP model to detect 15 content categories: pets and animals, selfies and portraits, food and restaurants, nightlife and bars, concerts and live music, nature and hiking, beach and water, skiing and snow sports, city sightseeing and landmarks, parties and celebrations, weddings and formal events, shopping, home and indoor life, airports and travel hubs, and sports and fitness. These tags feed into the AI naming system to generate descriptive folder names."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Does PhotoSort remove duplicate photos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort does not actively detect and delete duplicates. However, it skips copying a file if a file with the same name and size already exists in the output folder. This prevents duplication when you run PhotoSort multiple times on the same source. Full duplicate detection (by image hash) is planned for a future update."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I use PhotoSort on Windows, Mac, and Linux?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. Because PhotoSort runs in the browser, it works on any operating system that can run a modern version of Chrome or Edge — including Windows, macOS, and Linux. There is nothing to install beyond a supported browser."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a free version or trial?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort is a paid product (€9.99 one-time). There is no free tier. The full AI analysis runs in the browser before purchase so you can see the proposed folder structure, but you'll need to purchase to confirm and copy the files. If you're unhappy with the result after purchase, contact us for a refund."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I try PhotoSort before I buy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes. PhotoSort lets you run the full AI analysis on your photos and preview the complete proposed folder structure before you need to pay. The analysis — including all 7 AI stages — runs for free. You only need to purchase when you want to confirm the sort and have PhotoSort copy the files into the organized structure."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What happens if Gemini AI naming fails?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "If the Gemini API is unavailable or the request fails, PhotoSort automatically falls back to a structured name built from the session's location (from geocoding) and top content tags. For example, a beach session in Mallorca in July would become '2025-07 - Beach Mallorca'. This fallback runs silently — you'll still get a clean, descriptive folder name."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How does PhotoSort handle videos?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Videos (MP4, MOV, AVI, MKV, M4V) are sorted alongside photos into the same session-based folder structure using their file date metadata. PhotoSort does not run CLIP analysis on video files (only on images), but videos are included in the organized output and placed in the correct event folder based on when they were recorded."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I customize the folder structure?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "You can rename any folder in the preview before confirming the sort. The default structure is Year/Month-EventName (for example, 2025/08 - Rome Trip). Custom structure templates (such as Year/Month/Day or flat event folders) are planned for a future update. Currently, the Year/Month-EventName format is fixed but all names within it are editable."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Why does PhotoSort require Chrome or Edge?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "PhotoSort relies on the File System Access API to read your photo library and write the organized output directly to your local disk — without uploading anything. As of 2026, only Chromium-based browsers (Chrome and Edge) implement this API. Firefox and Safari have not yet shipped support for it. Once other browsers implement the API, PhotoSort will work in those browsers too."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is my purchase a one-time fee or a subscription?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "It is a one-time fee of €9.99. There are no monthly or annual charges, no renewal reminders, and no features locked behind a higher tier. Pay once and use PhotoSort forever — including all future updates to the sorting logic and AI model."
+        }
+      }
+    ]
+  }
+  </script>
+</head>
+<body>
+
+  <header class="site-header">
+    <nav class="site-nav" aria-label="Main navigation">
+      <div class="nav-container">
+        <a class="nav-logo" href="/">PhotoSort</a>
+        <ul class="nav-links">
+          <li><a href="/features">Features</a></li>
+          <li><a href="/how-it-works">How It Works</a></li>
+          <li><a href="/pricing">Pricing</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/faq">FAQ</a></li>
+          <li><a href="/" class="btn-nav-cta">Get Started →</a></li>
+        </ul>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+
+    <!-- Hero -->
+    <section class="page-hero">
+      <div class="container">
+        <h1>Frequently Asked Questions</h1>
+        <p class="page-hero-sub">Everything you need to know about PhotoSort — from how the AI works to what happens to your photos.</p>
+      </div>
+    </section>
+
+    <!-- FAQ Content -->
+    <section class="section">
+      <div class="container faq-page-container">
+
+        <!-- Jump navigation -->
+        <nav class="faq-jump-nav" aria-label="FAQ categories">
+          <ul>
+            <li><a href="#faq-how-it-works">How It Works</a></li>
+            <li><a href="#faq-privacy">Privacy &amp; Data</a></li>
+            <li><a href="#faq-compatibility">Compatibility &amp; Formats</a></li>
+            <li><a href="#faq-ai">AI &amp; Technology</a></li>
+            <li><a href="#faq-pricing">Pricing &amp; Purchase</a></li>
+          </ul>
+        </nav>
+
+        <!-- Section: How It Works -->
+        <h2 id="faq-how-it-works">How It Works</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-question">How does PhotoSort organize photos?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort reads your photos locally in your browser, analyzes them with the CLIP AI model, and groups them into sessions based on time and location. Each session becomes a named folder arranged in a <strong>Year/Month-EventName</strong> structure.</p>
+              <p>For example:</p>
+              <ul>
+                <li><code>2025/08 - Rome Trip</code></li>
+                <li><code>2025/11 - Wedding Munich</code></li>
+                <li><code>2025/12 - Christmas at Home</code></li>
+              </ul>
+              <p>Your original photos are never moved — PhotoSort creates copies in your chosen output folder.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What are "sessions" and how does PhotoSort group them?</summary>
+            <div class="faq-answer">
+              <p>A session is a group of photos taken within a continuous 4-hour window. If the gap between two consecutive photos (sorted by capture time) exceeds 4 hours, PhotoSort starts a new session.</p>
+              <p>Sessions map naturally to real-world activities: a birthday party, an afternoon hike, a day sightseeing in a new city. Each session becomes a separate named folder in your output.</p>
+              <p>A typical library of 5,000 photos might contain 80–200 distinct sessions depending on shooting habits.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">How does trip detection work?</summary>
+            <div class="faq-answer">
+              <p>During setup, you enter your home city. PhotoSort reads GPS coordinates from the EXIF metadata in your photos and uses reverse geocoding (via OpenStreetMap) to determine the location of each session.</p>
+              <p>Sessions that took place outside your home city area are classified as <strong>trips</strong>. Sessions in your home city area are classified as <strong>local events</strong>. This distinction shapes both the folder labels and the human-readable names generated by Gemini AI.</p>
+              <p>Photos without GPS data are treated as local events by default, unless other signals (like airport content tags) suggest travel.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What types of events does PhotoSort detect?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort uses the CLIP model to detect 15 content categories:</p>
+              <ul>
+                <li>Pets and animals</li>
+                <li>Selfies and portraits</li>
+                <li>Food and restaurants</li>
+                <li>Nightlife and bars</li>
+                <li>Concerts and live music</li>
+                <li>Nature and hiking</li>
+                <li>Beach and water activities</li>
+                <li>Skiing and snow sports</li>
+                <li>City sightseeing and landmarks</li>
+                <li>Parties and celebrations</li>
+                <li>Weddings and formal events</li>
+                <li>Shopping</li>
+                <li>Home and indoor life</li>
+                <li>Airports and travel hubs</li>
+                <li>Sports and fitness</li>
+              </ul>
+              <p>These tags feed into the Gemini naming system to produce descriptive, human-readable folder names.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can I sort photos by date automatically?</summary>
+            <div class="faq-answer">
+              <p>Yes. Date-based sorting is the foundation of how PhotoSort works. It reads the <strong>EXIF DateTimeOriginal</strong> field from every photo to get the exact capture date and time. Photos are organized chronologically into Year/Month folders first, and then further grouped into named events within each month.</p>
+              <p>If EXIF data is missing, PhotoSort falls back to the file's last-modified date so no photo gets skipped.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can I customize the folder structure?</summary>
+            <div class="faq-answer">
+              <p>You can rename any folder in the preview before confirming the sort. The default structure is <code>Year/Month-EventName</code>. Custom structure templates are planned for a future update.</p>
+              <p>All Gemini-generated folder names can be edited inline in the preview screen before any files are copied.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What happens if Gemini AI naming fails?</summary>
+            <div class="faq-answer">
+              <p>If the Gemini API is unavailable or the request times out, PhotoSort automatically uses a structured fallback name based on the session's geocoded location and top content tags. A beach session in Mallorca in July would become <code>2025-07 - Beach Mallorca</code>. The fallback runs silently — you still get a clean, descriptive folder name without any error.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Does PhotoSort remove duplicate photos?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort skips copying a file if a file with the same name and size already exists in the output location. This prevents duplication when you run PhotoSort multiple times on the same library. Full duplicate detection by image hash (which would catch renamed duplicates) is planned for a future update.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">How does PhotoSort handle videos?</summary>
+            <div class="faq-answer">
+              <p>Videos (MP4, MOV, AVI, MKV, M4V) are sorted alongside photos into the same session-based folder structure using their file date metadata. PhotoSort does not run CLIP visual analysis on video frames, but videos are placed in the correct event folder based on when they were recorded — alongside the photos from the same session.</p>
+            </div>
+          </details>
+
+        </div>
+
+        <!-- Section: Privacy -->
+        <h2 id="faq-privacy">Privacy &amp; Data</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-question">Do my photos get uploaded to the cloud?</summary>
+            <div class="faq-answer">
+              <p><strong>No.</strong> PhotoSort's AI (CLIP) runs entirely inside your browser using WebAssembly. Your photos are read from your local disk and processed in memory — they are never sent to any server.</p>
+              <p>The only external network requests are:</p>
+              <ul>
+                <li><strong>OpenStreetMap Nominatim:</strong> GPS coordinates only (no photos, no filenames)</li>
+                <li><strong>Gemini API:</strong> Short text descriptions only (date, location string, content tags — no photos)</li>
+              </ul>
+              <p>Your image files never leave your computer.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Will my original photos be deleted or moved?</summary>
+            <div class="faq-answer">
+              <p>Never. PhotoSort is completely non-destructive. It creates <strong>copies</strong> of your photos in the output folder you select. Your source files are not touched in any way — not moved, not renamed, not modified, not deleted.</p>
+              <p>If you don't like the result, delete the output folder and run PhotoSort again with different settings. Your originals are always safe.</p>
+            </div>
+          </details>
+
+        </div>
+
+        <!-- Section: Compatibility -->
+        <h2 id="faq-compatibility">Compatibility &amp; Formats</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-question">Which browsers work with PhotoSort?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort requires <strong>Google Chrome (version 86+)</strong> or <strong>Microsoft Edge (version 86+)</strong>. These are the only browsers that currently support the File System Access API that PhotoSort uses to access your photos locally without uploading them.</p>
+              <p>Firefox and Safari do not support the File System Access API as of 2026 and are not compatible with PhotoSort. Support will be added automatically once these browsers implement the API.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Why does PhotoSort require Chrome or Edge?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort relies on the <strong>File System Access API</strong> to read your entire photo library from disk and write the organized output — all without uploading anything to a server. This API was designed specifically to enable powerful local file operations in web apps.</p>
+              <p>As of 2026, only Chromium-based browsers (Chrome and Edge) implement this API. Once Firefox and Safari add support, PhotoSort will work in those browsers automatically.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can I use PhotoSort on Windows, Mac, and Linux?</summary>
+            <div class="faq-answer">
+              <p>Yes. PhotoSort is a web application that runs in the browser, so it works on any operating system that can run Chrome or Edge — including Windows 10/11, macOS, and Linux. There is nothing to install or update beyond your browser.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What photo formats does PhotoSort support?</summary>
+            <div class="faq-answer">
+              <p><strong>Images:</strong> JPEG, PNG, HEIC, WebP, TIFF</p>
+              <p><strong>Videos:</strong> MP4, MOV, AVI, MKV, M4V</p>
+              <p>RAW formats (CR2, ARW, NEF, DNG, ORF) are not currently supported but are on the roadmap.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">How many photos can PhotoSort handle?</summary>
+            <div class="faq-answer">
+              <p>There is no hard limit. PhotoSort has been tested on libraries of 30,000+ photos. Processing time scales roughly linearly:</p>
+              <ul>
+                <li>1,000 photos: ~5–15 minutes</li>
+                <li>5,000 photos: ~25–75 minutes</li>
+                <li>10,000 photos: ~50–150 minutes</li>
+              </ul>
+              <p>Speed depends on your CPU, whether GPU acceleration is available, and your disk's read speed. The actual file copying after the AI analysis completes is much faster.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can I run PhotoSort on a NAS or external hard drive?</summary>
+            <div class="faq-answer">
+              <p>Yes. Any drive that appears as a local drive in your operating system can be accessed through the file picker. This includes external USB drives, Thunderbolt drives, and network-attached storage (NAS) devices mounted as local drives. The processing still happens locally in your browser — only the file reading and writing happen on the external drive.</p>
+            </div>
+          </details>
+
+        </div>
+
+        <!-- Section: AI & Technology -->
+        <h2 id="faq-ai">AI &amp; Technology</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-question">Why does the AI model need to download 350MB?</summary>
+            <div class="faq-answer">
+              <p>The CLIP model (<code>Xenova/clip-vit-base-patch32</code>) is a neural network with over 150 million parameters. It was trained on hundreds of millions of image-text pairs and understands the visual content of photos well enough to classify them into dozens of categories without any task-specific fine-tuning.</p>
+              <p>Even in its compressed, quantized ONNX form optimized for browsers, the model weighs approximately 350MB. This is a one-time download. After the first use, the model is permanently cached in your browser's storage and PhotoSort works completely offline for AI analysis.</p>
+            </div>
+          </details>
+
+        </div>
+
+        <!-- Section: Pricing -->
+        <h2 id="faq-pricing">Pricing &amp; Purchase</h2>
+
+        <div class="faq-list">
+
+          <details class="faq-item">
+            <summary class="faq-question">Is my purchase a one-time fee or a subscription?</summary>
+            <div class="faq-answer">
+              <p>It is a <strong>one-time fee of €9.99</strong>. There are no monthly or annual charges, no renewal reminders, and no features locked behind a higher tier. Pay once and use PhotoSort forever, including all future updates.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Is there a free version or trial?</summary>
+            <div class="faq-answer">
+              <p>PhotoSort lets you run the full AI analysis and preview the complete proposed folder structure before paying. The 7-stage AI analysis runs for free. You only need to purchase to confirm the sort and have files copied into the organized structure.</p>
+              <p>This means you can see exactly what PhotoSort will do with your photos before you spend a cent.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">Can I try PhotoSort before I buy?</summary>
+            <div class="faq-answer">
+              <p>Yes. The full AI pipeline — CLIP analysis, session clustering, trip detection, geocoding, and Gemini naming — runs in your browser before you need to purchase. You can see the complete proposed folder structure, rename folders, and review which photos go where. Purchase is required only to copy files into the organized output.</p>
+            </div>
+          </details>
+
+          <details class="faq-item">
+            <summary class="faq-question">What if I want a refund?</summary>
+            <div class="faq-answer">
+              <p>If you're unhappy with PhotoSort after purchase, contact us within 30 days and we'll issue a full refund — no questions asked. Since you can preview the full output before purchasing, refund requests are rare, but we honor them without hesitation.</p>
+            </div>
+          </details>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta-section">
+      <div class="container cta-inner">
+        <h2>Still Have Questions?</h2>
+        <p>PhotoSort is simple, private, and costs less than a coffee. Try the AI analysis free before you buy.</p>
+        <a href="/" class="btn-primary btn-large">Get PhotoSort for €9.99 →</a>
+        <p class="cta-sub">One-time purchase. No subscription. Works on Chrome and Edge.</p>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span class="nav-logo">PhotoSort</span>
+        <p>AI photo organization that respects your privacy.</p>
+      </div>
+      <div class="footer-cols">
+        <div class="footer-col">
+          <h4>Product</h4>
+          <ul>
+            <li><a href="/features">Features</a></li>
+            <li><a href="/pricing">Pricing</a></li>
+            <li><a href="/how-it-works">How It Works</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Learn</h4>
+          <ul>
+            <li><a href="/blog">Blog</a></li>
+            <li><a href="/faq">FAQ</a></li>
+            <li><a href="/about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Compare</h4>
+          <ul>
+            <li><a href="/compare/vs-google-photos">vs Google Photos</a></li>
+            <li><a href="/compare/vs-adobe-lightroom">vs Adobe Lightroom</a></li>
+            <li><a href="/compare/vs-apple-photos">vs Apple Photos</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2026 PhotoSort &middot; <a href="/about">About</a> &middot; <a href="/faq">FAQ</a> &middot; <a href="/privacy">Privacy</a></p>
+    </div>
+  </footer>
+
+</body>
+</html>

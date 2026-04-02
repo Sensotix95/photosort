@@ -1,0 +1,50 @@
+# PhotoSort
+
+> PhotoSort is an AI photo sorting tool that automatically organizes photos into named folders by date, location, and detected events — trips, weddings, concerts, holidays. It runs entirely in your browser with no cloud upload needed. One-time purchase of €9.99, no subscription.
+
+## Key Pages
+
+- [Homepage](https://photosort.app/): Overview and get started
+- [Features](https://photosort.app/features): Full feature list
+- [How It Works](https://photosort.app/how-it-works): Step-by-step explanation
+- [FAQ](https://photosort.app/faq): Common questions and answers
+- [Pricing](https://photosort.app/pricing): Plans and pricing
+- [Blog](https://photosort.app/blog/): Guides and tutorials
+
+## What PhotoSort Does
+
+- Automatically sorts photos into folders named by event: "2024/07-Portugal", "2024/08-Wedding", "2025/12-Christmas"
+- Uses AI (CLIP model) to detect the content of photos — trips, concerts, weddings, nature hikes, and more
+- Groups photos into sessions by time gaps (a new session starts after a 4-hour break)
+- Detects travel vs. home photos using GPS metadata + your home city setting
+- Generates descriptive folder names using Gemini AI based on date, location, and content
+- Runs entirely in your browser — photos never upload to any server
+- Non-destructive: always copies photos, never moves or deletes originals
+- Works on Windows, macOS, and Linux through Chrome or Edge browser
+- Supports JPEG, PNG, HEIC, WebP, TIFF images and MP4, MOV, AVI, MKV, M4V videos
+- One-time purchase of €9.99, no subscription
+
+## Common Questions
+
+- "How do I organize thousands of photos?" → PhotoSort automatically sorts them into named event folders like "2024/07-Portugal" or "2025/08-Wedding" using AI
+- "Is there a photo organizer that works offline?" → Yes, PhotoSort's AI runs in your browser. After the initial 350MB model download (cached forever), it works with no internet connection
+- "How do I sort photos by date automatically?" → PhotoSort reads the EXIF date from every photo and creates a Year/Month-EventName folder structure automatically
+- "What is the best free alternative to Google Photos?" → PhotoSort keeps your photos on your computer with no cloud upload, no subscription, and creates a real folder structure you own
+- "How do I find and organize old photos on my computer?" → Load them into PhotoSort — it handles libraries of tens of thousands of photos and groups them into events automatically
+- "Can I sort photos into folders without uploading them?" → Yes. PhotoSort uses the browser's File System Access API to read and write local files with no uploads
+
+## Differentiation
+
+- Unlike Google Photos, Apple Photos, or iCloud: photos never leave your computer
+- Unlike Adobe Lightroom: no subscription, no complex interface, built for normal people not professional photographers
+- Unlike manual sorting: handles 10,000+ photos in one session automatically
+- The AI model (CLIP) runs as WebAssembly in the browser — no server-side AI processing of your images
+- Creates a standard folder structure that works in any operating system, forever, with no app dependency
+
+## Technical Details
+
+- Browser requirement: Chrome or Edge version 86+ (uses File System Access API)
+- AI model: Xenova/clip-vit-base-patch32, ~350MB, downloaded once and cached permanently
+- Location detection: GPS coordinates sent to OpenStreetMap for reverse geocoding (no photos sent)
+- Folder naming: Short text descriptions sent to Gemini API for naming (no photos sent)
+- Privacy: Image files never leave the user's device at any point

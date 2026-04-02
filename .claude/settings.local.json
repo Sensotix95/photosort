@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir 'C:\\\\Users\\\\pt95\\\\Documents\\\\Life\\\\Lernen\\\\AI Coding\\\\Claude Code Projekte\\\\Projekt 4 - Photo Sorter Online\\\\public' /s /b)",
+      "Bash(find 'C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public' -name *.html)",
+      "Bash(mkdir -p \"C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public/compare/vs-adobe-lightroom\")",
+      "Bash(mkdir -p \"C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public/compare/vs-apple-photos\")",
+      "Bash(mkdir -p \"C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public/blog/how-to-find-and-remove-duplicate-photos\")",
+      "Bash(mkdir -p \"C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public/blog/organize-thousands-of-photos\")",
+      "Bash(find 'C:/Users/pt95/Documents/Life/Lernen/AI Coding/Claude Code Projekte/Projekt 4 - Photo Sorter Online/public' -name *.html -o -name robots.txt -o -name sitemap.xml -o -name llms.txt)",
+      "Bash(node -e \"const path=require\\(''path''\\); const fs=require\\(''fs''\\); const routes=[''/blog'',''/faq'',''/compare/vs-google-photos'',''/compare/vs-adobe-lightroom'',''/compare/vs-apple-photos'',''/blog/how-to-find-and-remove-duplicate-photos'',''/blog/organize-thousands-of-photos'']; routes.forEach\\(r=>{ const p=path.join\\(''public'',r,''index.html''\\); console.log\\(r, ''->'', fs.existsSync\\(p\\)?''OK'':''MISSING''\\); }\\);\")",
+      "Bash(ls:*)"
+    ]
+  }
+}
