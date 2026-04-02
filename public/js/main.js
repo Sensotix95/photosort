@@ -51,11 +51,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Handle Stripe redirect back with ?session_id=xxx
+  // Handle Stripe redirect back with ?session_id=xxx (fallback redirect flow)
   const params    = new URLSearchParams(location.search);
   const sessionId = params.get('session_id');
   if (sessionId) {
-    history.replaceState({}, '', '/'); // clean URL
+    history.replaceState({}, '', '/');
     try {
       setStatus('Verifying payment…');
       await exchangeSessionId(sessionId);
@@ -64,6 +64,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('screen-gate');
       return;
     }
+    // Token now valid — go to app
+    show('screen-app');
+    bindEvents();
+    return;
   }
 
   // Check for existing token
@@ -77,9 +81,83 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
 });
 
+// ── Copy files (extracted so it can be called from confirm button or after payment) ──
+
+async function doCopy() {
+  if (!currentPlan || !destDirHandle) return;
+
+  show('screen-process');
+  setStatus('Copying files…');
+
+  try {
+    await executePlan(currentPlan, destDirHandle, (done, total, file) => {
+      setProgress('copy', done, total);
+      if (file) setStatus(`Copying: ${file}`);
+    });
+
+    show('screen-done');
+    document.getElementById('done-count').textContent = currentPlan.length;
+    document.getElementById('done-folder').textContent = destDirHandle.name;
+  } catch (err) {
+    console.error('Copy error:', err);
+    setStatus(`Error while copying: ${err.message}`);
+  }
+}
+
+// ── Payment overlay ───────────────────────────────────────────────────────────
+
+let stripeCheckoutInstance = null;
+
+function closePaymentOverlay() {
+  document.getElementById('overlay-payment').classList.add('hidden');
+  if (stripeCheckoutInstance) {
+    stripeCheckoutInstance.destroy();
+    stripeCheckoutInstance = null;
+  }
+}
+
+async function showPaymentOverlay() {
+  const overlay = document.getElementById('overlay-payment');
+  overlay.classList.remove('hidden');
+
+  try {
+    // Fetch publishable key from server
+    const configRes = await fetch('/api/auth/config');
+    const { publishableKey } = await configRes.json();
+    if (!publishableKey) throw new Error('Missing Stripe publishable key');
+
+    // eslint-disable-next-line no-undef
+    const stripe = Stripe(publishableKey);
+    const checkout = await stripe.initEmbeddedCheckout({
+      fetchClientSecret: async () => {
+        const res = await fetch('/api/auth/checkout-embedded', { method: 'POST' });
+        if (!res.ok) throw new Error('Failed to create checkout session');
+        const { clientSecret } = await res.json();
+        return clientSecret;
+      },
+    });
+    checkout.mount('#stripe-checkout-container');
+    stripeCheckoutInstance = checkout;
+  } catch (err) {
+    console.error('Embedded checkout failed, falling back to redirect:', err);
+    closePaymentOverlay();
+    // Fallback: classic Stripe redirect
+    try {
+      await startCheckout();
+    } catch {
+      alert('Could not start checkout. Please try again.');
+    }
+  }
+}
+
 // ── Event bindings ────────────────────────────────────────────────────────────
 
 function bindEvents() {
+  // Gate: "Start Sorting" button — lets user into the app without paying
+  document.getElementById('btn-start-free')?.addEventListener('click', () => {
+    show('screen-app');
+  });
+
   // Gate: test access toggle
   document.getElementById('link-test-access')?.addEventListener('click', (e) => {
     e.preventDefault();
@@ -112,16 +190,36 @@ function bindEvents() {
     if (e.key === 'Enter') document.getElementById('btn-test-login').click();
   });
 
-  // Gate: buy button
-  document.getElementById('btn-buy')?.addEventListener('click', async (e) => {
-    e.target.disabled = true;
-    e.target.textContent = 'Redirecting to checkout…';
+  // Payment overlay: close button
+  document.getElementById('btn-close-payment')?.addEventListener('click', () => {
+    closePaymentOverlay();
+    show('screen-preview'); // return to preview
+  });
+
+  // Payment overlay: click backdrop to close
+  document.getElementById('overlay-backdrop')?.addEventListener('click', () => {
+    closePaymentOverlay();
+    show('screen-preview');
+  });
+
+  // Payment overlay: receive success message from /payment-complete iframe
+  window.addEventListener('message', async (e) => {
+    if (e.origin !== window.location.origin) return;
+    if (e.data?.type !== 'PAYMENT_SUCCESS') return;
+
+    closePaymentOverlay();
+
     try {
-      await startCheckout();
+      show('screen-process');
+      setStatus('Verifying payment…');
+      await exchangeSessionId(e.data.sessionId);
     } catch {
-      e.target.disabled = false;
-      e.target.textContent = 'Get PhotoSort';
+      alert('Payment verification failed. Please contact support.');
+      show('screen-preview');
+      return;
     }
+
+    await doCopy();
   });
 
   // Step 1: pick source folder
@@ -168,7 +266,7 @@ function bindEvents() {
 
       setStatus(`Found ${files.length} files. Starting AI analysis…`);
 
-      // Run full pipeline
+      // Run full pipeline (free — payment is only required to copy)
       currentPlan = await buildPlan(
         files,
         homeCity,
@@ -187,26 +285,18 @@ function bindEvents() {
     }
   });
 
-  // Step 3: confirm and copy
+  // Step 3: confirm and copy — check payment here, not before
   document.getElementById('btn-confirm')?.addEventListener('click', async () => {
     if (!currentPlan || !destDirHandle) return;
 
-    show('screen-process');
-    setStatus('Copying files…');
-
-    try {
-      await executePlan(currentPlan, destDirHandle, (done, total, file) => {
-        setProgress('copy', done, total);
-        if (file) setStatus(`Copying: ${file}`);
-      });
-
-      show('screen-done');
-      document.getElementById('done-count').textContent = currentPlan.length;
-      document.getElementById('done-folder').textContent = destDirHandle.name;
-    } catch (err) {
-      console.error('Copy error:', err);
-      setStatus(`Error while copying: ${err.message}`);
+    const { valid } = await verifyToken();
+    if (!valid) {
+      // Show payment overlay — plan stays in memory
+      await showPaymentOverlay();
+      return;
     }
+
+    await doCopy();
   });
 
   // Step 3: cancel preview → go back

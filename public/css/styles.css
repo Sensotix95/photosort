@@ -298,6 +298,76 @@ pre code {
   font-size: 0.93rem;
 }
 
+/* ── Payment overlay ──────────────────────────────────────────────────────── */
+#overlay-payment {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.payment-overlay-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  cursor: pointer;
+}
+.payment-overlay-card {
+  position: relative;
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.3);
+}
+.payment-overlay-header {
+  padding: 1.75rem 2rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.payment-overlay-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+.payment-overlay-header p {
+  color: var(--muted);
+  font-size: 0.87rem;
+}
+.payment-overlay-footer {
+  padding: 1rem 2rem 1.25rem;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Trial CTA (gate screen) ──────────────────────────────────────────────── */
+.trial-cta {
+  text-align: center;
+  padding: 2rem;
+  background: var(--surface);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius);
+  margin: 0 auto 2.5rem;
+  max-width: 400px;
+  box-shadow: var(--shadow);
+}
+.trial-cta .btn {
+  width: 100%;
+  justify-content: center;
+  font-size: 1.05rem;
+  padding: 0.9rem;
+  margin-bottom: 0.9rem;
+}
+.trial-sub {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+}
+
 /* ── Nav header ───────────────────────────────────────────────────────────── */
 .app-header {
   display: flex;

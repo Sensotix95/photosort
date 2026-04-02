@@ -1,34 +1,20 @@
 const router = require('express').Router();
-const jwt = require('jsonwebtoken');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { TRIP_NAME_PROMPT, HOME_EVENTS_PROMPT } = require('../utils/prompts');
 
-// Simple per-customer rate limiting: max 20 Gemini calls per hour
-const callLog = new Map(); // customerId → [timestamp, ...]
+// Per-IP rate limiting: max 20 Gemini calls per hour (preview is free, but limit abuse)
+const callLog = new Map(); // ip → [timestamp, ...]
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 3_600_000;
 
-function checkRateLimit(customerId) {
+function checkRateLimit(ip) {
   const now = Date.now();
   const window = now - RATE_WINDOW_MS;
-  const calls = (callLog.get(customerId) || []).filter(t => t > window);
+  const calls = (callLog.get(ip) || []).filter(t => t > window);
   if (calls.length >= RATE_LIMIT) return false;
   calls.push(now);
-  callLog.set(customerId, calls);
+  callLog.set(ip, calls);
   return true;
-}
-
-function requireAuth(req, res, next) {
-  const auth = req.headers.authorization;
-  if (!auth?.startsWith('Bearer ')) return res.status(401).json({ error: 'Unauthorized' });
-  try {
-    const payload = jwt.verify(auth.slice(7), process.env.JWT_SECRET);
-    if (!payload.paid) return res.status(401).json({ error: 'Unauthorized' });
-    req.user = payload;
-    next();
-  } catch {
-    res.status(401).json({ error: 'Unauthorized' });
-  }
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
@@ -46,12 +32,12 @@ async function callGemini(prompt) {
 // POST /api/gemini/plan
 // Body: { year, trips: [...], homeSessions: [...] }
 // Returns: { tripNames: { id: folderName }, events: [...], flatSessionIds: [...] }
-router.post('/plan', requireAuth, async (req, res) => {
+router.post('/plan', async (req, res) => {
   const { year, trips = [], homeSessions = [] } = req.body;
   if (!year) return res.status(400).json({ error: 'Missing year' });
 
-  const customerId = req.user.customerId || req.user.email || 'anonymous';
-  if (!checkRateLimit(customerId)) {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  if (!checkRateLimit(ip)) {
     return res.status(429).json({ error: 'Rate limit exceeded', retryAfter: 3600 });
   }
 

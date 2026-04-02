@@ -18,7 +18,12 @@ function signToken(session) {
   );
 }
 
-// POST /api/auth/checkout — create Stripe Checkout session
+// GET /api/auth/config — return Stripe publishable key (safe to expose)
+router.get('/config', (_req, res) => {
+  res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
+});
+
+// POST /api/auth/checkout — create Stripe Checkout session (redirect flow, kept as fallback)
 router.post('/checkout', async (_req, res) => {
   try {
     const session = await stripe.checkout.sessions.create({
@@ -31,6 +36,23 @@ router.post('/checkout', async (_req, res) => {
     res.json({ url: session.url });
   } catch (err) {
     console.error('Stripe checkout error:', err.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
+// POST /api/auth/checkout-embedded — create embedded Stripe Checkout session
+router.post('/checkout-embedded', async (_req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded',
+      payment_method_types: ['card'],
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      mode: 'payment',
+      return_url: `${process.env.FRONTEND_URL}/payment-complete?session_id={CHECKOUT_SESSION_ID}`,
+    });
+    res.json({ clientSecret: session.client_secret });
+  } catch (err) {
+    console.error('Stripe embedded checkout error:', err.message);
     res.status(500).json({ error: 'Failed to create checkout session' });
   }
 });
