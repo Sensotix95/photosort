@@ -202,7 +202,6 @@
     <div class="trial-cta">
       <button id="btn-start-free" class="btn btn-primary">Start Sorting →</button>
       <p class="trial-sub">See exactly how your photos will be organised before anything is copied.</p>
-      <p class="hint">Already purchased? <a href="#" id="link-already-bought">Open app →</a></p>
     </div>
 
     <div class="how-it-works">
@@ -473,18 +472,6 @@
 
 <script src="https://js.stripe.com/v3/"></script>
 <script type="module" src="/js/main.js"></script>
-<script>
-  // "Already purchased" link — show app if token exists, else alert
-  document.getElementById('link-already-bought')?.addEventListener('click', e => {
-    e.preventDefault();
-    if (localStorage.getItem('photosorter_token')) {
-      document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
-      document.getElementById('screen-app').classList.remove('hidden');
-    } else {
-      alert('No purchase found. Please buy PhotoSort first.');
-    }
-  });
-</script>
 
 </body>
 </html>
