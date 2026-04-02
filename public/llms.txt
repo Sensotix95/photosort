@@ -4,12 +4,12 @@
 
 ## Key Pages
 
-- [Homepage](https://photosort.app/): Overview and get started
-- [Features](https://photosort.app/features): Full feature list
-- [How It Works](https://photosort.app/how-it-works): Step-by-step explanation
-- [FAQ](https://photosort.app/faq): Common questions and answers
-- [Pricing](https://photosort.app/pricing): Plans and pricing
-- [Blog](https://photosort.app/blog/): Guides and tutorials
+- [Homepage](https://photosort-production-d4d1.up.railway.app/): Overview and get started
+- [Features](https://photosort-production-d4d1.up.railway.app/features): Full feature list
+- [How It Works](https://photosort-production-d4d1.up.railway.app/how-it-works): Step-by-step explanation
+- [FAQ](https://photosort-production-d4d1.up.railway.app/faq): Common questions and answers
+- [Pricing](https://photosort-production-d4d1.up.railway.app/pricing): Plans and pricing
+- [Blog](https://photosort-production-d4d1.up.railway.app/blog/): Guides and tutorials
 
 ## What PhotoSort Does
 
