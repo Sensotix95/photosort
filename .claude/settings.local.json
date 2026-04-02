@@ -11,7 +11,10 @@
       "Bash(node -e \"const path=require\\(''path''\\); const fs=require\\(''fs''\\); const routes=[''/blog'',''/faq'',''/compare/vs-google-photos'',''/compare/vs-adobe-lightroom'',''/compare/vs-apple-photos'',''/blog/how-to-find-and-remove-duplicate-photos'',''/blog/organize-thousands-of-photos'']; routes.forEach\\(r=>{ const p=path.join\\(''public'',r,''index.html''\\); console.log\\(r, ''->'', fs.existsSync\\(p\\)?''OK'':''MISSING''\\); }\\);\")",
       "Bash(ls:*)",
       "WebSearch",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(while read:*)",
+      "Bash(do sed:*)",
+      "Bash(node -e \":*)"
     ]
   }
 }
