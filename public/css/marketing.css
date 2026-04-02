@@ -235,12 +235,18 @@
 }
 .mkt-page p { line-height: 1.75; margin-bottom: 1rem; color: var(--text); }
 .mkt-page ul, .mkt-page ol {
-  padding-left: 1.5rem;
-  margin-bottom: 1rem;
-  line-height: 1.75;
+  padding-left: 1.6rem;
+  margin: 0.75rem 0 1.25rem;
+  line-height: 1.8;
   color: var(--text);
 }
-.mkt-page li { margin-bottom: 0.35rem; }
+.mkt-page ul { list-style-type: disc; }
+.mkt-page ol { list-style-type: decimal; }
+.mkt-page li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+.mkt-page li::marker { color: var(--accent); }
 .mkt-page a { color: var(--accent); }
 
 /* ── Feature grid (features page) ───────────────────────────────────────── */
@@ -391,6 +397,52 @@
   color: var(--success);
   font-weight: 600;
   margin: 0;
+}
+
+/* ── Blog post body content ──────────────────────────────────────────────── */
+.post-body {
+  font-size: 1rem;
+  line-height: 1.8;
+  color: var(--text);
+}
+.post-body h2 {
+  font-size: 1.45rem;
+  font-weight: 700;
+  margin: 2.5rem 0 0.75rem;
+  letter-spacing: -0.3px;
+  color: var(--text);
+}
+.post-body h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 1.75rem 0 0.5rem;
+  color: var(--text);
+}
+.post-body p {
+  margin-bottom: 1.1rem;
+  line-height: 1.8;
+}
+.post-body ul,
+.post-body ol {
+  padding-left: 1.6rem;
+  margin: 0.75rem 0 1.25rem;
+  line-height: 1.8;
+}
+.post-body ul { list-style-type: disc; }
+.post-body ol { list-style-type: decimal; }
+.post-body li {
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+}
+.post-body li::marker { color: var(--accent); }
+.post-body strong { font-weight: 700; color: var(--text); }
+.post-body a { color: var(--accent); font-weight: 500; }
+.post-body a:hover { text-decoration: underline; }
+.post-body pre {
+  margin: 1.5rem 0;
+}
+.post-body code {
+  font-size: 0.875em;
 }
 
 /* ── Blog layout ─────────────────────────────────────────────────────────── */
@@ -614,10 +666,17 @@ summary.faq-question::-webkit-details-marker { display: none; }
 .faq-answer p { margin-bottom: 0.75rem; }
 .faq-answer p:last-child { margin-bottom: 0; }
 .faq-answer ul, .faq-answer ol {
-  padding-left: 1.4rem;
-  margin: 0.5rem 0 0.75rem;
+  padding-left: 1.6rem;
+  margin: 0.75rem 0 1rem;
+  line-height: 1.8;
 }
-.faq-answer li { margin-bottom: 0.3rem; }
+.faq-answer ul { list-style-type: disc; }
+.faq-answer ol { list-style-type: decimal; }
+.faq-answer li {
+  margin-bottom: 0.45rem;
+  padding-left: 0.2rem;
+}
+.faq-answer li::marker { color: var(--accent); }
 .faq-answer code {
   background: var(--bg);
   border: 1px solid var(--border);
