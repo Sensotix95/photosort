@@ -73,7 +73,7 @@ const CONTENT_LABEL_TO_TAG = Object.fromEntries(CONTENT_LABELS.map(c => [c.label
 
 // Thresholds
 const TRASH_MARGIN = 0.05;       // trash score must beat real-photo score by this (softmax-adjusted)
-const CONTENT_THRESHOLD = 0.12;  // min softmax score to include a content tag (adjusted for 15 labels)
+const CONTENT_THRESHOLD = 0.19;  // min softmax score to include a content tag (adjusted for 15 labels)
 const CONTENT_SAMPLES = 5;       // images sampled per session for content tags
 
 // ── Model ─────────────────────────────────────────────────────────────────────

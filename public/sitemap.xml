@@ -3,7 +3,7 @@
 
   <!-- Homepage -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/</loc>
+    <loc>https://sortmypics.com/</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
@@ -11,19 +11,19 @@
 
   <!-- Core product pages -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/features</loc>
+    <loc>https://sortmypics.com/features</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/how-it-works</loc>
+    <loc>https://sortmypics.com/how-it-works</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/pricing</loc>
+    <loc>https://sortmypics.com/pricing</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -31,13 +31,13 @@
 
   <!-- Support & info pages -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/faq</loc>
+    <loc>https://sortmypics.com/faq</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/about</loc>
+    <loc>https://sortmypics.com/about</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
@@ -45,7 +45,7 @@
 
   <!-- Blog index -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog</loc>
+    <loc>https://sortmypics.com/blog</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -53,31 +53,31 @@
 
   <!-- Blog posts -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog/how-to-organize-photos-on-computer</loc>
+    <loc>https://sortmypics.com/blog/how-to-organize-photos-on-computer</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog/best-free-photo-organizer-software</loc>
+    <loc>https://sortmypics.com/blog/best-free-photo-organizer-software</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog/sort-photos-into-folders-automatically</loc>
+    <loc>https://sortmypics.com/blog/sort-photos-into-folders-automatically</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog/how-to-find-and-remove-duplicate-photos</loc>
+    <loc>https://sortmypics.com/blog/how-to-find-and-remove-duplicate-photos</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/blog/organize-thousands-of-photos</loc>
+    <loc>https://sortmypics.com/blog/organize-thousands-of-photos</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -85,19 +85,19 @@
 
   <!-- Comparison pages -->
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/compare/vs-google-photos</loc>
+    <loc>https://sortmypics.com/compare/vs-google-photos</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/compare/vs-adobe-lightroom</loc>
+    <loc>https://sortmypics.com/compare/vs-adobe-lightroom</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://photosort-production-d4d1.up.railway.app/compare/vs-apple-photos</loc>
+    <loc>https://sortmypics.com/compare/vs-apple-photos</loc>
     <lastmod>2026-04-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>

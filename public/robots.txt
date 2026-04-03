@@ -25,4 +25,4 @@ Allow: /
 User-agent: Applebot
 Allow: /
 
-Sitemap: https://photosort-production-d4d1.up.railway.app/sitemap.xml
+Sitemap: https://sortmypics.com/sitemap.xml

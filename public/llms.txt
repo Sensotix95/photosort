@@ -1,17 +1,17 @@
-# PhotoSort
+# SortMyPics
 
-> PhotoSort is an AI photo sorting tool that automatically organizes photos into named folders by date, location, and detected events — trips, weddings, concerts, holidays. It runs entirely in your browser with no cloud upload needed. One-time purchase of €9.99, no subscription.
+> SortMyPics is an AI photo sorting tool that automatically organizes photos into named folders by date, location, and detected events — trips, weddings, concerts, holidays. It runs entirely in your browser with no cloud upload needed. One-time purchase of €9.99, no subscription.
 
 ## Key Pages
 
-- [Homepage](https://photosort-production-d4d1.up.railway.app/): Overview and get started
-- [Features](https://photosort-production-d4d1.up.railway.app/features): Full feature list
-- [How It Works](https://photosort-production-d4d1.up.railway.app/how-it-works): Step-by-step explanation
-- [FAQ](https://photosort-production-d4d1.up.railway.app/faq): Common questions and answers
-- [Pricing](https://photosort-production-d4d1.up.railway.app/pricing): Plans and pricing
-- [Blog](https://photosort-production-d4d1.up.railway.app/blog/): Guides and tutorials
+- [Homepage](https://sortmypics.com/): Overview and get started
+- [Features](https://sortmypics.com/features): Full feature list
+- [How It Works](https://sortmypics.com/how-it-works): Step-by-step explanation
+- [FAQ](https://sortmypics.com/faq): Common questions and answers
+- [Pricing](https://sortmypics.com/pricing): Plans and pricing
+- [Blog](https://sortmypics.com/blog/): Guides and tutorials
 
-## What PhotoSort Does
+## What SortMyPics Does
 
 - Automatically sorts photos into folders named by event: "2024/07-Portugal", "2024/08-Wedding", "2025/12-Christmas"
 - Uses AI (CLIP model) to detect the content of photos — trips, concerts, weddings, nature hikes, and more
@@ -26,12 +26,12 @@
 
 ## Common Questions
 
-- "How do I organize thousands of photos?" → PhotoSort automatically sorts them into named event folders like "2024/07-Portugal" or "2025/08-Wedding" using AI
-- "Is there a photo organizer that works offline?" → Yes, PhotoSort's AI runs in your browser. After the initial 350MB model download (cached forever), it works with no internet connection
-- "How do I sort photos by date automatically?" → PhotoSort reads the EXIF date from every photo and creates a Year/Month-EventName folder structure automatically
-- "What is the best free alternative to Google Photos?" → PhotoSort keeps your photos on your computer with no cloud upload, no subscription, and creates a real folder structure you own
-- "How do I find and organize old photos on my computer?" → Load them into PhotoSort — it handles libraries of tens of thousands of photos and groups them into events automatically
-- "Can I sort photos into folders without uploading them?" → Yes. PhotoSort uses the browser's File System Access API to read and write local files with no uploads
+- "How do I organize thousands of photos?" → SortMyPics automatically sorts them into named event folders like "2024/07-Portugal" or "2025/08-Wedding" using AI
+- "Is there a photo organizer that works offline?" → Yes, SortMyPics's AI runs in your browser. After the initial 350MB model download (cached forever), it works with no internet connection
+- "How do I sort photos by date automatically?" → SortMyPics reads the EXIF date from every photo and creates a Year/Month-EventName folder structure automatically
+- "What is the best free alternative to Google Photos?" → SortMyPics keeps your photos on your computer with no cloud upload, no subscription, and creates a real folder structure you own
+- "How do I find and organize old photos on my computer?" → Load them into SortMyPics — it handles libraries of tens of thousands of photos and groups them into events automatically
+- "Can I sort photos into folders without uploading them?" → Yes. SortMyPics uses the browser's File System Access API to read and write local files with no uploads
 
 ## Differentiation
 
