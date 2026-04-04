@@ -3,10 +3,11 @@
 const TRIP_NAME_PROMPT = `Name photo trip folders for {year}.
 
 Rules:
-- 1-3 words; use the most prominent city or region name
-- If multiple cities in one country, use the country or the most-visited city
+- If the trip covers multiple distinct cities (especially across different countries), list all main cities joined by " & " — e.g. "Nizza & Monaco", "Prague & Vienna"
+- If the trip covers many cities within one country, use the country or region name instead — e.g. "Portugal", "French Alps"
+- Single-city trips: just the city name — e.g. "Hamburg", "Rome"
 - NO generic suffixes (no Trip/Visit/Vacation/Journey/Tour/Holiday)
-- Examples: "Portugal", "Hamburg", "Rome", "French Alps", "Lisbon"
+- Max 4 words total
 
 Trips (id: date_range, n_photos, locations, [tags]):
 {trips_compact}

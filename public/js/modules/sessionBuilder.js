@@ -3,8 +3,10 @@
 
 const CLUSTER_GAP_HOURS   = 4;
 const MIN_PHOTOS_FOR_LLM  = 3;   // sessions smaller than this skip Gemini, go flat
-const AWAY_MERGE_GAP_DAYS = 3;   // max gap (days) to merge consecutive same-country away sessions
+const AWAY_MERGE_GAP_DAYS = 3;   // max gap (days) to merge consecutive away sessions
 const UNKNOWN_ABSORB_DAYS = 1;   // absorb GPS-less session into adjacent trip if within ±this days
+const PROXIMITY_MERGE_KM  = 150; // merge cross-border sessions within this distance (handles Monaco/Nice etc.)
+const HOME_EXCLUSION_KM   = 100; // don't proximity-merge trips within this distance of home
 
 // photo: { handle, file, date: Date, lat, lon, label: 'real'|'other', relativePath }
 
@@ -50,31 +52,69 @@ function buildSession(photos, id) {
   };
 }
 
+// Detect the most likely home city from geocoded sessions.
+// Weights by photo count so a big home session beats many tiny away sessions.
+export function detectHomeCity(sessions) {
+  const cityCounts = new Map();
+  for (const s of sessions) {
+    if (!s.location) continue;
+    const city = s.location.split(',')[0].trim();
+    cityCounts.set(city, (cityCounts.get(city) || 0) + s.photoCount);
+  }
+  if (!cityCounts.size) return null;
+  return [...cityCounts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+}
+
+// Returns the average lat/lon of all sessions matching the detected home city.
+export function detectHomeCentroid(sessions, homeCity) {
+  if (!homeCity) return { lat: null, lon: null };
+  const homeSessions = sessions.filter(s => {
+    if (!s.location || s.lat == null) return false;
+    return s.location.split(',')[0].trim().toLowerCase() === homeCity.toLowerCase();
+  });
+  if (!homeSessions.length) return { lat: null, lon: null };
+  return {
+    lat: avg(homeSessions.map(s => s.lat)),
+    lon: avg(homeSessions.map(s => s.lon)),
+  };
+}
+
 // Group sessions into trips (consecutive away sessions in same country)
-// and home sessions. Returns { trips, homeSessions, unknownSessions }.
-export function detectTrips(sessions, homeCity) {
+// and home sessions. Returns { trips, homeSessions }.
+// homeCity is the first geocoder segment (e.g. "Wien") — matched against
+// session location's first segment so language is always consistent.
+export function detectTrips(sessions, homeCity, homeLat = null, homeLon = null) {
   const trips        = [];
   const homeSessions = [];
 
   let currentTrip = null;
 
   for (const session of sessions) {
-    const isHome    = session.location && homeCity &&
-                      session.location.toLowerCase().includes(homeCity.toLowerCase());
+    const sessionCity = session.location ? session.location.split(',')[0].trim() : null;
+    const isHome    = sessionCity && homeCity &&
+                      sessionCity.toLowerCase() === homeCity.toLowerCase();
     const isUnknown = session.location == null;
     const isAway    = !isHome && !isUnknown;
 
     if (isAway) {
       const country = extractCountry(session.location);
-      if (
-        currentTrip &&
-        country === currentTrip.country &&
-        daysDiff(session.startDate, currentTrip.endDate) <= AWAY_MERGE_GAP_DAYS
-      ) {
+      const withinTimeWindow = currentTrip &&
+        daysDiff(session.startDate, currentTrip.endDate) <= AWAY_MERGE_GAP_DAYS;
+      const sameCountry = currentTrip && country === currentTrip.country;
+      const farFromHome = homeLat == null || (
+        haversineKm(session.lat ?? 0, session.lon ?? 0, homeLat, homeLon) > HOME_EXCLUSION_KM &&
+        haversineKm(currentTrip?.lat ?? 0, currentTrip?.lon ?? 0, homeLat, homeLon) > HOME_EXCLUSION_KM
+      );
+      const nearbyTrip  = currentTrip && !sameCountry && withinTimeWindow &&
+        farFromHome &&
+        session.lat != null && currentTrip.lat != null &&
+        haversineKm(session.lat, session.lon, currentTrip.lat, currentTrip.lon) <= PROXIMITY_MERGE_KM;
+      if (withinTimeWindow && (sameCountry || nearbyTrip)) {
         // Extend existing trip
         currentTrip.sessions.push(session);
         currentTrip.endDate = session.endDate;
         currentTrip.photoCount += session.photoCount;
+        if (session.lat != null) { currentTrip.lat = session.lat; currentTrip.lon = session.lon; }
         if (!currentTrip.locations.includes(session.location)) {
           currentTrip.locations.push(session.location);
         }
@@ -87,6 +127,8 @@ export function detectTrips(sessions, homeCity) {
           endDate:   session.endDate,
           photoCount: session.photoCount,
           locations:  [session.location],
+          lat:        session.lat,
+          lon:        session.lon,
         };
       }
     } else {
@@ -142,6 +184,16 @@ function extractCountry(location) {
   if (!location) return null;
   const parts = location.split(',').map(s => s.trim());
   return parts.at(-1) || null;
+}
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 export { MIN_PHOTOS_FOR_LLM };

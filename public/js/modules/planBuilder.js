@@ -3,7 +3,7 @@
 
 import { makeFileKey, getCached, putCached, evictExpired } from './idbCache.js';
 import { readExif } from './exifReader.js';
-import { clusterSessions, detectTrips, resetTripCounter, MIN_PHOTOS_FOR_LLM } from './sessionBuilder.js';
+import { clusterSessions, detectTrips, detectHomeCity, detectHomeCentroid, resetTripCounter, MIN_PHOTOS_FOR_LLM } from './sessionBuilder.js';
 import { reverseGeocode, sessionCentroid } from './geocoder.js';
 import { getAuthHeaders } from './auth.js';
 
@@ -68,7 +68,7 @@ async function tagSession(sessionId, files) {
 // homeCity: string (e.g. "Vienna") — used to detect away trips
 // onStatus: (msg: string) => void — status text updates
 // onProgress: ({ stage, done, total }) => void — progress updates
-export async function buildPlan(scannedFiles, homeCity, onStatus, onProgress) {
+export async function buildPlan(scannedFiles, onStatus, onProgress) {
   await evictExpired();
 
   const images = scannedFiles.filter(f => !f.isVideo);
@@ -142,6 +142,10 @@ export async function buildPlan(scannedFiles, homeCity, onStatus, onProgress) {
     onProgress({ stage: 'geo', done: i + 1, total: sessions.length });
   }
 
+  // Auto-detect home city and its coordinates from geocoded sessions
+  const homeCity = detectHomeCity(sessions);
+  const { lat: homeLat, lon: homeLon } = detectHomeCentroid(sessions, homeCity);
+
   // ── Stage 5: CLIP content tags ────────────────────────────────────────────
   onStatus('Tagging session content…');
   const taggableSessions = sessions.filter(s => s.photoCount >= MIN_PHOTOS_FOR_LLM);
@@ -169,7 +173,7 @@ export async function buildPlan(scannedFiles, homeCity, onStatus, onProgress) {
   const yearPlans = {}; // year → { tripNames, events, flatSessionIds }
 
   for (const [year, yearSessions] of Object.entries(byYear)) {
-    const { trips, homeSessions } = detectTrips(yearSessions, homeCity);
+    const { trips, homeSessions } = detectTrips(yearSessions, homeCity, homeLat, homeLon);
 
     // Sessions with too few photos skip Gemini and go flat
     const llmHomeSessions = homeSessions.filter(s => s.photoCount >= MIN_PHOTOS_FOR_LLM);
@@ -202,16 +206,25 @@ export async function buildPlan(scannedFiles, homeCity, onStatus, onProgress) {
     }
   }
 
-  // ── Stage 7: Assemble file move plan ──────────────────────────────────────
+  // ── Stage 7: Pre-read video file dates (needed for year fallback) ─────────
+  const videoYears = new Map();
+  for (const entry of videos) {
+    try {
+      const f = await entry.handle.getFile();
+      videoYears.set(entry.handle.name, new Date(f.lastModified).getFullYear());
+    } catch {}
+  }
+
+  // ── Stage 8: Assemble file move plan ──────────────────────────────────────
   onStatus('Assembling file plan…');
   return assemblePlan({
-    yearPlans, sessions, otherPhotos, videos, byYear
+    yearPlans, sessions, otherPhotos, videos, byYear, videoYears
   });
 }
 
 // ── Plan assembly ─────────────────────────────────────────────────────────────
 
-function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear }) {
+function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoYears }) {
   const plan = [];          // { handle, destPath, label }
   const sessionFolders = {}; // sessionId → destPath prefix (for tree preview)
 
@@ -224,10 +237,21 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear }) {
       for (const sid of ev.session_ids) eventBySid[sid] = ev.folder_name;
     }
 
+    // Count how many trips share the same destination name within this year
+    const destCount = new Map();
+    for (const trip of trips) {
+      const name = tripNames[trip.id];
+      if (name) destCount.set(name, (destCount.get(name) || 0) + 1);
+    }
+
     // Trip sessions
     for (const trip of trips) {
-      const folderName = tripNames[trip.id]
-        ? `${year}-${trip.date_start.slice(5, 7)} ${tripNames[trip.id]}`
+      const name = tripNames[trip.id];
+      // Only add month prefix if the same destination appears more than once this year
+      const folderName = name
+        ? destCount.get(name) > 1
+          ? `${year}-${trip.date_start.slice(5, 7)} ${name}`
+          : name
         : null;
 
       for (const session of trip.sessions) {
@@ -239,12 +263,20 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear }) {
       }
     }
 
+    // Count how many times each event name appears to decide on month prefix
+    const eventNameCount = new Map();
+    for (const ev of events) {
+      eventNameCount.set(ev.folder_name, (eventNameCount.get(ev.folder_name) || 0) + 1);
+    }
+
     // Home sessions — events or flat
     for (const session of homeSessions) {
       if (eventBySid[session.id]) {
-        const monthStr = session.date.slice(0, 7).replace('-', '-');
+        const evName = eventBySid[session.id];
         const mm = session.date.slice(5, 7);
-        const folder = `${year}/${year}-${mm} ${eventBySid[session.id]}`;
+        const folder = eventNameCount.get(evName) > 1
+          ? `${year}/${year}-${mm} ${evName}`
+          : `${year}/${evName}`;
         for (const photo of session.photos) {
           plan.push({ handle: photo.handle, destPath: `${folder}/${photo.handle.name}`, folder });
         }
@@ -259,25 +291,17 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear }) {
   }
 
   // Other (screenshots & documents) → YEAR/other/
-  for (const { entry } of otherPhotos) {
-    const year = yearFromFilename(entry.relativePath);
+  for (const { entry, file } of otherPhotos) {
+    const year = yearFromFilename(entry.relativePath)
+      ?? new Date(file.lastModified).getFullYear();
     plan.push({ handle: entry.handle, destPath: `${year}/other/${entry.handle.name}`, folder: `${year}/other` });
   }
 
-  // Videos — match to events by date or → YEAR/Videos/
+  // Videos → YEAR/Videos/ (dates pre-read in buildPlan to avoid async here)
   for (const entry of videos) {
-    let matched = false;
-    // Try to match to a session folder by date proximity
-    for (const [sid, folder] of Object.entries(sessionFolders)) {
-      const session = sessions.find(s => s.id === Number(sid));
-      if (!session) continue;
-      const videoDate = entry.handle.name; // We use file mtime as proxy
-      const startMs   = session.startDate.getTime() - VIDEO_BUFFER_DAYS * 86_400_000;
-      const endMs     = session.endDate.getTime()   + VIDEO_BUFFER_DAYS * 86_400_000;
-      // We don't have video dates here — for now put all videos in YEAR/Videos/
-      // A future improvement: read video mtime and match by timestamp
-    }
-    const year = yearFromFilename(entry.relativePath);
+    const year = yearFromFilename(entry.relativePath)
+      ?? videoYears.get(entry.handle.name)
+      ?? new Date().getFullYear();
     plan.push({ handle: entry.handle, destPath: `${year}/Videos/${entry.handle.name}`, folder: `${year}/Videos` });
   }
 
@@ -301,9 +325,9 @@ function getExt(name) {
 }
 
 function yearFromFilename(path) {
-  // Try to extract year from path segments; fallback to current year
+  // Try to extract year from path segments; returns null if not found
   const match = path.match(/\b(20\d{2}|19\d{2})\b/);
-  return match ? match[1] : String(new Date().getFullYear());
+  return match ? match[1] : null;
 }
 
 export function buildFolderTree(plan) {

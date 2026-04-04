@@ -248,8 +248,6 @@ function bindEvents() {
   document.getElementById('btn-start')?.addEventListener('click', async () => {
     if (!sourceDirHandle || !destDirHandle) return;
 
-    const homeCity = document.getElementById('home-city-input')?.value.trim() || '';
-
     show('screen-process');
     setStatus('Scanning folder…');
 
@@ -269,7 +267,6 @@ function bindEvents() {
       // Run full pipeline (free — payment is only required to copy)
       currentPlan = await buildPlan(
         files,
-        homeCity,
         (msg) => setStatus(msg),
         ({ stage, done, total }) => setProgress(stage, done, total)
       );
