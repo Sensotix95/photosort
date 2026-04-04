@@ -210,16 +210,12 @@ function bindEvents() {
     closePaymentOverlay();
 
     try {
-      show('screen-process');
-      setStatus('Verifying payment…');
       await exchangeSessionId(e.data.sessionId);
     } catch {
       alert('Payment verification failed. Please contact support.');
-      show('screen-preview');
-      return;
     }
 
-    await doCopy();
+    show('screen-preview');
   });
 
   // Step 1: pick source folder
