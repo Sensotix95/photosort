@@ -27,6 +27,9 @@ const TRASH_PROMPTS = {
     'a food photo at a restaurant',
     'a street photography or travel photo',
     'a photo taken at a concert or festival with a large LED stage screen',
+    'a speaker presenting on stage at a conference or event',
+    'a keynote or presentation with a projection screen in the background',
+    'people sitting in an audience watching a presentation or talk',
   ],
   'Screenshots & Documents': [
     'a screenshot of a computer desktop or phone screen',
@@ -73,7 +76,7 @@ const CONTENT_TAG_LABELS = CONTENT_LABELS.map(c => c.label);
 const CONTENT_LABEL_TO_TAG = Object.fromEntries(CONTENT_LABELS.map(c => [c.label, c.tag]));
 
 // Thresholds
-const TRASH_MARGIN = 0.12;       // trash score must beat real-photo score by this (softmax-adjusted)
+const TRASH_MARGIN = 0.20;       // trash score must beat real-photo score by this (softmax-adjusted)
 const CONTENT_THRESHOLD = 0.19;  // min softmax score to include a content tag (adjusted for 15 labels)
 const CONTENT_SAMPLES = 5;       // images sampled per session for content tags
 
@@ -116,12 +119,12 @@ async function classifyTrash(blobUrl) {
 
   // Clearly real or clearly trash
   if (margin <= TRASH_MARGIN)  return { label: 'real',  score: realScore };
-  if (margin >= 0.20)          return { label: 'other', score: trashScore };
+  if (margin >= 0.35)          return { label: 'other', score: trashScore };
 
-  // Ambiguous zone (0.12–0.20): run a focused second pass to disambiguate
+  // Ambiguous zone (0.20–0.35): run a focused second pass to disambiguate
   const secondary = await clf(blobUrl, [
     'a screenshot of a phone or computer screen',
-    'a photo taken at an event, concert, or gathering',
+    'a photo taken at an event, concert, conference, or gathering',
   ]);
   const isTrash = secondary[0].score > secondary[1].score;
   return { label: isTrash ? 'other' : 'real', score: isTrash ? trashScore : realScore };

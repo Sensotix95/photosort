@@ -4,8 +4,9 @@ const TRIP_NAME_PROMPT = `Name photo trip folders for {year}.
 
 Rules:
 - If the trip covers multiple distinct cities (especially across different countries), list the main cities joined by " & " — e.g. "Nizza & Monaco", "Prague & Vienna"
-- If the trip covers many cities within one country, use the most prominent city or well-known region — e.g. "Bavaria", "French Alps", "Tuscany". NEVER use a bare country name (not "Germany", not "Austria") — always go one level more specific.
-- If the locations list contains district or county names (e.g. "Mühlviertel") instead of city names, infer the nearest well-known city or region from context.
+- If the trip spans many cities spread across a whole country (a true country-wide road trip), the country name is fine — e.g. "Portugal", "Japan".
+- If the trip is concentrated in one city or a specific region, use that city or region instead — e.g. "Bavaria", "French Alps", "Hamburg".
+- If the locations list contains district or county names (e.g. "Mühlviertel") instead of city names, infer the nearest well-known city or region from context rather than using the district name.
 - Single-city trips: just the city name — e.g. "Hamburg", "Rome"
 - NO generic suffixes (no Trip/Visit/Vacation/Journey/Tour/Holiday)
 - Max 4 words total

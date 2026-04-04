@@ -75,21 +75,17 @@ router.post('/plan', async (req, res) => {
 
       const homeResult = await callGemini(homePrompt);
 
-      // Post-process: deduplicate session IDs across events and merge same-named events
+      // Post-process: deduplicate session IDs across events (keep events separate)
       const rawEvents = homeResult.events || [];
       const claimedSids = new Set();
-      const mergedByName = new Map(); // folder_name → session_ids[]
+      const deduplicatedEvents = [];
       for (const ev of rawEvents) {
         const sids = (ev.session_ids || []).filter(id => !claimedSids.has(id));
         if (!sids.length) continue;
         sids.forEach(id => claimedSids.add(id));
-        if (mergedByName.has(ev.folder_name)) {
-          mergedByName.get(ev.folder_name).push(...sids);
-        } else {
-          mergedByName.set(ev.folder_name, [...sids]);
-        }
+        deduplicatedEvents.push({ ...ev, session_ids: sids });
       }
-      output.events = [...mergedByName.entries()].map(([folder_name, session_ids]) => ({ folder_name, session_ids }));
+      output.events = deduplicatedEvents;
       output.flatSessionIds = homeResult.flat_session_ids || [];
     }
 
