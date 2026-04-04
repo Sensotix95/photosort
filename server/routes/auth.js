@@ -23,6 +23,24 @@ router.get('/config', (_req, res) => {
   res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
 });
 
+// POST /api/auth/checkout-popup — create Stripe Checkout session for popup flow
+// success_url points to /payment-complete which postMessages back to the opener
+router.post('/checkout-popup', async (_req, res) => {
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/payment-complete?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${process.env.FRONTEND_URL}/`,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe checkout-popup error:', err.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
 // POST /api/auth/checkout — create Stripe Checkout session (redirect flow, kept as fallback)
 router.post('/checkout', async (_req, res) => {
   try {

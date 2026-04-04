@@ -15,14 +15,15 @@
 <script>
   const sessionId = new URLSearchParams(location.search).get('session_id');
   if (sessionId) {
-    if (window.parent !== window) {
-      // Loaded inside Stripe's embedded checkout iframe — notify parent
-      window.parent.postMessage(
+    if (window.opener && !window.opener.closed) {
+      // Opened as a popup — notify the main window and close
+      window.opener.postMessage(
         { type: 'PAYMENT_SUCCESS', sessionId },
         window.location.origin
       );
+      window.close();
     } else {
-      // Loaded directly (fallback redirect flow) — go home with session_id
+      // Popup was blocked and user ended up here via full redirect — go home with session_id
       window.location.href = '/?session_id=' + encodeURIComponent(sessionId);
     }
   }

@@ -41,6 +41,7 @@ function setProgress(stage, done, total) {
 let sourceDirHandle = null;
 let destDirHandle   = null;
 let currentPlan     = null;
+let paymentPopup    = null;
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Handle Stripe redirect back with ?session_id=xxx (fallback redirect flow)
+  // Handle Stripe redirect back with ?session_id=xxx (popup-blocked fallback)
   const params    = new URLSearchParams(location.search);
   const sessionId = params.get('session_id');
   if (sessionId) {
@@ -64,7 +65,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       show('screen-gate');
       return;
     }
-    // Token now valid — go to app
     show('screen-app');
     bindEvents();
     return;
@@ -81,7 +81,29 @@ document.addEventListener('DOMContentLoaded', async () => {
   bindEvents();
 });
 
-// ── Copy files (extracted so it can be called from confirm button or after payment) ──
+// ── Payment popup ─────────────────────────────────────────────────────────────
+
+async function openPaymentPopup() {
+  try {
+    const res = await fetch('/api/auth/checkout-popup', { method: 'POST' });
+    if (!res.ok) throw new Error('Failed to create checkout session');
+    const { url } = await res.json();
+
+    const w    = 500, h = 700;
+    const left = Math.round(window.screenX + (window.outerWidth  - w) / 2);
+    const top  = Math.round(window.screenY + (window.outerHeight - h) / 2);
+    paymentPopup = window.open(url, 'stripe-checkout', `width=${w},height=${h},left=${left},top=${top}`);
+
+    if (!paymentPopup) {
+      // Popup blocked — fall back to full-page redirect (state will be lost)
+      await startCheckout();
+    }
+  } catch {
+    alert('Could not start checkout. Please try again.');
+  }
+}
+
+// ── Copy files ────────────────────────────────────────────────────────────────
 
 async function doCopy() {
   if (!currentPlan || !destDirHandle) return;
@@ -101,52 +123,6 @@ async function doCopy() {
   } catch (err) {
     console.error('Copy error:', err);
     setStatus(`Error while copying: ${err.message}`);
-  }
-}
-
-// ── Payment overlay ───────────────────────────────────────────────────────────
-
-let stripeCheckoutInstance = null;
-
-function closePaymentOverlay() {
-  document.getElementById('overlay-payment').classList.add('hidden');
-  if (stripeCheckoutInstance) {
-    stripeCheckoutInstance.destroy();
-    stripeCheckoutInstance = null;
-  }
-}
-
-async function showPaymentOverlay() {
-  const overlay = document.getElementById('overlay-payment');
-  overlay.classList.remove('hidden');
-
-  try {
-    // Fetch publishable key from server
-    const configRes = await fetch('/api/auth/config');
-    const { publishableKey } = await configRes.json();
-    if (!publishableKey) throw new Error('Missing Stripe publishable key');
-
-    // eslint-disable-next-line no-undef
-    const stripe = Stripe(publishableKey);
-    const checkout = await stripe.initEmbeddedCheckout({
-      fetchClientSecret: async () => {
-        const res = await fetch('/api/auth/checkout-embedded', { method: 'POST' });
-        if (!res.ok) throw new Error('Failed to create checkout session');
-        const { clientSecret } = await res.json();
-        return clientSecret;
-      },
-    });
-    checkout.mount('#stripe-checkout-container');
-    stripeCheckoutInstance = checkout;
-  } catch (err) {
-    console.error('Embedded checkout failed, falling back to redirect:', err);
-    closePaymentOverlay();
-    // Fallback: classic Stripe redirect
-    try {
-      await startCheckout();
-    } catch {
-      alert('Could not start checkout. Please try again.');
-    }
   }
 }
 
@@ -190,29 +166,19 @@ function bindEvents() {
     if (e.key === 'Enter') document.getElementById('btn-test-login').click();
   });
 
-  // Payment overlay: close button
-  document.getElementById('btn-close-payment')?.addEventListener('click', () => {
-    closePaymentOverlay();
-    show('screen-preview'); // return to preview
-  });
-
-  // Payment overlay: click backdrop to close
-  document.getElementById('overlay-backdrop')?.addEventListener('click', () => {
-    closePaymentOverlay();
-    show('screen-preview');
-  });
-
-  // Payment overlay: receive success message from /payment-complete iframe
+  // Payment popup: receive success message from /payment-complete
   window.addEventListener('message', async (e) => {
     if (e.origin !== window.location.origin) return;
     if (e.data?.type !== 'PAYMENT_SUCCESS') return;
 
-    closePaymentOverlay();
+    if (paymentPopup && !paymentPopup.closed) paymentPopup.close();
+    paymentPopup = null;
 
     try {
       await exchangeSessionId(e.data.sessionId);
     } catch {
       alert('Payment verification failed. Please contact support.');
+      return;
     }
 
     show('screen-preview');
@@ -248,7 +214,6 @@ function bindEvents() {
     setStatus('Scanning folder…');
 
     try {
-      // Scan files
       const files = await scanDirectory(sourceDirHandle, (count) => {
         setStatus(`Scanning… ${count} files found`);
       });
@@ -260,14 +225,12 @@ function bindEvents() {
 
       setStatus(`Found ${files.length} files. Starting AI analysis…`);
 
-      // Run full pipeline (free — payment is only required to copy)
       currentPlan = await buildPlan(
         files,
         (msg) => setStatus(msg),
         ({ stage, done, total }) => setProgress(stage, done, total)
       );
 
-      // Show preview
       show('screen-preview');
       const container = document.getElementById('preview-container');
       renderPreview(currentPlan, container);
@@ -278,14 +241,13 @@ function bindEvents() {
     }
   });
 
-  // Step 3: confirm and copy — check payment here, not before
+  // Step 3: confirm and copy — open payment popup if not yet paid
   document.getElementById('btn-confirm')?.addEventListener('click', async () => {
     if (!currentPlan || !destDirHandle) return;
 
     const { valid } = await verifyToken();
     if (!valid) {
-      // Show payment overlay — plan stays in memory
-      await showPaymentOverlay();
+      await openPaymentPopup();
       return;
     }
 
