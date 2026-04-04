@@ -153,7 +153,7 @@ async function showPaymentOverlay() {
 // ── Event bindings ────────────────────────────────────────────────────────────
 
 function bindEvents() {
-  // Gate: "Start Sorting" button — lets user into the app without paying
+  // Landing CTA: start sorting directly
   document.getElementById('btn-start-free')?.addEventListener('click', () => {
     show('screen-app');
   });
