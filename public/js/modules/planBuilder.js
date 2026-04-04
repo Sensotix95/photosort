@@ -244,6 +244,9 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
       if (name) destCount.set(name, (destCount.get(name) || 0) + 1);
     }
 
+    // Track which sessions were emitted by the trip loop to avoid duplicates below
+    const emittedByTrip = new Set(trips.flatMap(trip => trip.sessions.map(s => s.id)));
+
     // Trip sessions
     for (const trip of trips) {
       const name = tripNames[trip.id];
@@ -271,6 +274,7 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
 
     // Home sessions — events or flat
     for (const session of homeSessions) {
+      if (emittedByTrip.has(session.id)) continue;
       if (eventBySid[session.id]) {
         const evName = eventBySid[session.id];
         const mm = session.date.slice(5, 7);

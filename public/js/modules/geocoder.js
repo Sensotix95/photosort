@@ -26,13 +26,13 @@ export async function reverseGeocode(lat, lon) {
   await throttle();
 
   try {
-    const url    = `${NOMINATIM_URL}?lat=${lat}&lon=${lon}&format=json&zoom=10`;
+    const url    = `${NOMINATIM_URL}?lat=${lat}&lon=${lon}&format=json&zoom=12`;
     const resp   = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const data   = await resp.json();
     const addr   = data.address || {};
     // Build "City, Country" string — match Python output format
-    const city   = addr.city || addr.town || addr.village || addr.municipality || addr.county || '';
+    const city   = addr.city || addr.town || addr.village || addr.city_district || addr.suburb || addr.municipality || addr.county || '';
     const country = addr.country || '';
     const result = [city, country].filter(Boolean).join(', ') || data.display_name?.split(',').slice(-2).join(',').trim() || null;
     cache.set(key, result);
