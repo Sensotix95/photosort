@@ -237,24 +237,15 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
       for (const sid of ev.session_ids) eventBySid[sid] = ev.folder_name;
     }
 
-    // Count how many trips share the same destination name within this year
-    const destCount = new Map();
-    for (const trip of trips) {
-      const name = tripNames[trip.id];
-      if (name) destCount.set(name, (destCount.get(name) || 0) + 1);
-    }
-
     // Track which sessions were emitted by the trip loop to avoid duplicates below
     const emittedByTrip = new Set(trips.flatMap(trip => trip.sessions.map(s => s.id)));
 
     // Trip sessions
     for (const trip of trips) {
       const name = tripNames[trip.id];
-      // Only add month prefix if the same destination appears more than once this year
+      // Always prefix with start date so trips sort chronologically within the year folder
       const folderName = name
-        ? destCount.get(name) > 1
-          ? `${year}-${trip.date_start.slice(5, 7)} ${name}`
-          : name
+        ? `${year}-${trip.date_start.slice(5, 10)} ${name}`
         : null;
 
       for (const session of trip.sessions) {
@@ -266,21 +257,13 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
       }
     }
 
-    // Count how many times each event name appears to decide on month prefix
-    const eventNameCount = new Map();
-    for (const ev of events) {
-      eventNameCount.set(ev.folder_name, (eventNameCount.get(ev.folder_name) || 0) + 1);
-    }
-
     // Home sessions — events or flat
     for (const session of homeSessions) {
       if (emittedByTrip.has(session.id)) continue;
       if (eventBySid[session.id]) {
         const evName = eventBySid[session.id];
-        const mm = session.date.slice(5, 7);
-        const folder = eventNameCount.get(evName) > 1
-          ? `${year}/${year}-${mm} ${evName}`
-          : `${year}/${evName}`;
+        const mmdd = session.date.slice(5, 10);
+        const folder = `${year}/${year}-${mmdd} ${evName}`;
         for (const photo of session.photos) {
           plan.push({ handle: photo.handle, destPath: `${folder}/${photo.handle.name}`, folder });
         }
