@@ -147,4 +147,10 @@ router.post('/test-login', (req, res) => {
   res.json({ token });
 });
 
+// GET /api/auth/dev-token — issues a test token for the /patrick dev page (no password, security by obscurity)
+router.get('/dev-token', (req, res) => {
+  const token = jwt.sign({ paid: true, email: 'test@local', customerId: 'test' }, process.env.JWT_SECRET);
+  res.json({ token });
+});
+
 module.exports = router;

@@ -134,38 +134,6 @@ function bindEvents() {
     show('screen-app');
   });
 
-  // Gate: test access toggle
-  document.getElementById('link-test-access')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    const form = document.getElementById('test-access-form');
-    form.style.display = form.style.display === 'none' ? 'block' : 'none';
-  });
-
-  // Gate: test login submit
-  document.getElementById('btn-test-login')?.addEventListener('click', async () => {
-    const password = document.getElementById('test-password-input').value;
-    const errEl    = document.getElementById('test-login-error');
-    errEl.style.display = 'none';
-    try {
-      const res = await fetch('/api/auth/test-login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-      });
-      if (!res.ok) { errEl.style.display = 'block'; return; }
-      const { token } = await res.json();
-      saveToken(token);
-      show('screen-app');
-    } catch {
-      errEl.style.display = 'block';
-    }
-  });
-
-  // Allow pressing Enter in the password field
-  document.getElementById('test-password-input')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') document.getElementById('btn-test-login').click();
-  });
-
   // Payment popup: receive success message from /payment-complete
   window.addEventListener('message', async (e) => {
     if (e.origin !== window.location.origin) return;
