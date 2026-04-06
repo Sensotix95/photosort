@@ -1,6 +1,7 @@
 // Electron main process — starts the local Express server, then opens a BrowserWindow.
 
 const { app, BrowserWindow, ipcMain, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const { fork } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -80,6 +81,12 @@ app.whenReady().then(async () => {
   await startServer();
   await createWindow();
   app.on('activate', () => { if (!mainWindow) createWindow(); });
+
+  // Check for updates silently after the window is ready.
+  // Downloads in the background; prompts the user to restart when ready.
+  if (app.isPackaged) {
+    autoUpdater.checkForUpdatesAndNotify();
+  }
 });
 
 app.on('window-all-closed', () => {
