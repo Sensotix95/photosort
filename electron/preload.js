@@ -8,4 +8,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getGeminiKey: ()      => ipcRenderer.invoke('get-gemini-key'),
   setGeminiKey: (key)   => ipcRenderer.invoke('set-gemini-key', key),
   openExternal: (url)   => ipcRenderer.invoke('open-external', url),
+  getVersion:   ()      => ipcRenderer.invoke('get-version'),
 });

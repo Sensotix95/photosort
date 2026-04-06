@@ -80,8 +80,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       } catch {}
     }
 
-    // Show settings button (only visible in Electron)
+    // Show settings button and version (only visible in Electron)
     document.getElementById('btn-settings')?.classList.remove('hidden');
+    const versionEl = document.getElementById('app-version');
+    if (versionEl) {
+      const v = await window.electronAPI.getVersion();
+      if (v) { versionEl.textContent = `v${v}`; versionEl.style.display = ''; }
+    }
 
     // If no API key is saved yet, show the first-launch key setup screen
     const geminiKey = await window.electronAPI.getGeminiKey();

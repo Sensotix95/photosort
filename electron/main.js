@@ -102,3 +102,4 @@ app.on('will-quit', () => {
 ipcMain.handle('get-gemini-key', ()        => readSettings().geminiApiKey || '');
 ipcMain.handle('set-gemini-key', (_e, key) => { writeSettings({ geminiApiKey: key.trim() }); return true; });
 ipcMain.handle('open-external',  (_e, url) => shell.openExternal(url));
+ipcMain.handle('get-version',    ()        => app.getVersion());
