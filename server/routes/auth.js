@@ -1,6 +1,8 @@
 const router = require('express').Router();
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const stripe = process.env.STRIPE_SECRET_KEY ? require('stripe')(process.env.STRIPE_SECRET_KEY) : null;
 const jwt = require('jsonwebtoken');
+
+const DESKTOP_MODE = process.env.DESKTOP_MODE === 'true';
 
 // In-memory store for pending JWT exchanges.
 // Keyed by Stripe session ID; set by webhook, consumed once by /token endpoint.
@@ -23,9 +25,29 @@ router.get('/config', (_req, res) => {
   res.json({ publishableKey: process.env.STRIPE_PUBLISHABLE_KEY || '' });
 });
 
+// POST /api/auth/checkout-download — Stripe checkout that lands on /download on success
+// Buying online or buying the desktop app uses the same €9.99 price; one purchase covers both.
+router.post('/checkout-download', async (_req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{ price: process.env.STRIPE_PRICE_ID, quantity: 1 }],
+      mode: 'payment',
+      success_url: `${process.env.FRONTEND_URL}/download?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url:  `${process.env.FRONTEND_URL}/`,
+    });
+    res.json({ url: session.url });
+  } catch (err) {
+    console.error('Stripe checkout-download error:', err.message);
+    res.status(500).json({ error: 'Failed to create checkout session' });
+  }
+});
+
 // POST /api/auth/checkout-popup — create Stripe Checkout session for popup flow
 // success_url points to /payment-complete which postMessages back to the opener
 router.post('/checkout-popup', async (_req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -43,6 +65,7 @@ router.post('/checkout-popup', async (_req, res) => {
 
 // POST /api/auth/checkout — create Stripe Checkout session (redirect flow, kept as fallback)
 router.post('/checkout', async (_req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   try {
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -60,6 +83,7 @@ router.post('/checkout', async (_req, res) => {
 
 // POST /api/auth/checkout-embedded — create embedded Stripe Checkout session
 router.post('/checkout-embedded', async (_req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   try {
     const session = await stripe.checkout.sessions.create({
       ui_mode: 'embedded',
@@ -78,6 +102,7 @@ router.post('/checkout-embedded', async (_req, res) => {
 // POST /api/auth/webhook — Stripe sends payment confirmation here
 // Note: raw body parsing is configured in server/index.js before this route is mounted.
 router.post('/webhook', async (req, res) => {
+  if (!stripe) return res.status(503).json({ error: 'Payments not configured' });
   const sig = req.headers['stripe-signature'];
   let event;
 
@@ -127,6 +152,9 @@ router.get('/token', async (req, res) => {
 
 // POST /api/auth/verify — check if a stored JWT is still valid
 router.post('/verify', (req, res) => {
+  // In desktop mode the app is always authorized — no payment gate
+  if (DESKTOP_MODE) return res.json({ valid: true, email: 'desktop@local' });
+
   const auth = req.headers.authorization;
   if (!auth?.startsWith('Bearer ')) return res.status(401).json({ valid: false });
   try {
@@ -135,6 +163,13 @@ router.post('/verify', (req, res) => {
   } catch {
     res.status(401).json({ valid: false });
   }
+});
+
+// POST /api/auth/desktop-token — issues a local token for the desktop app (DESKTOP_MODE only)
+router.post('/desktop-token', (req, res) => {
+  if (!DESKTOP_MODE) return res.status(403).json({ error: 'Not available' });
+  const token = jwt.sign({ paid: true, email: 'desktop@local', customerId: 'desktop' }, process.env.JWT_SECRET);
+  res.json({ token });
 });
 
 // POST /api/auth/test-login — password-based access for testing (no payment required)

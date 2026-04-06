@@ -2,7 +2,8 @@ const router = require('express').Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { TRIP_NAME_PROMPT, HOME_EVENTS_PROMPT } = require('../utils/prompts');
 
-// Per-IP rate limiting: max 20 Gemini calls per hour (preview is free, but limit abuse)
+// Per-IP rate limiting: max 20 Gemini calls per hour (applies to server key only)
+// When the user provides their own key via X-Gemini-Key, they use their own API quota.
 const callLog = new Map(); // ip → [timestamp, ...]
 const RATE_LIMIT = 20;
 const RATE_WINDOW_MS = 3_600_000;
@@ -17,9 +18,8 @@ function checkRateLimit(ip) {
   return true;
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-async function callGemini(prompt) {
+async function callGemini(prompt, apiKey) {
+  const genAI = new GoogleGenerativeAI(apiKey);
   const model = genAI.getGenerativeModel({
     model: 'gemini-2.5-flash',
     generationConfig: { responseMimeType: 'application/json', temperature: 0.1 },
@@ -31,14 +31,27 @@ async function callGemini(prompt) {
 
 // POST /api/gemini/plan
 // Body: { year, trips: [...], homeSessions: [...] }
+// Header: X-Gemini-Key (optional) — user-supplied key for the desktop app
 // Returns: { tripNames: { id: folderName }, events: [...], flatSessionIds: [...] }
 router.post('/plan', async (req, res) => {
   const { year, trips = [], homeSessions = [] } = req.body;
   if (!year) return res.status(400).json({ error: 'Missing year' });
 
-  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
-  if (!checkRateLimit(ip)) {
-    return res.status(429).json({ error: 'Rate limit exceeded', retryAfter: 3600 });
+  // Resolve which API key to use
+  const userKey   = req.headers['x-gemini-key'];
+  const serverKey = process.env.GEMINI_API_KEY;
+  const apiKey    = userKey || serverKey;
+
+  if (!apiKey) {
+    return res.status(503).json({ error: 'No Gemini API key available', fallback: true });
+  }
+
+  // Rate-limit only applies when using the server's shared key
+  if (!userKey) {
+    const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+    if (!checkRateLimit(ip)) {
+      return res.status(429).json({ error: 'Rate limit exceeded', retryAfter: 3600 });
+    }
   }
 
   const output = { tripNames: {}, events: [], flatSessionIds: [] };
@@ -56,7 +69,7 @@ router.post('/plan', async (req, res) => {
         .replace('{year}', year)
         .replace('{trips_compact}', tripsCompact);
 
-      const tripResult = await callGemini(tripPrompt);
+      const tripResult = await callGemini(tripPrompt, apiKey);
       for (const item of tripResult.trips || []) {
         output.tripNames[item.id] = item.folder_name;
       }
@@ -73,7 +86,7 @@ router.post('/plan', async (req, res) => {
         .replace('{year}', year)
         .replace('{sessions_compact}', sessionsCompact);
 
-      const homeResult = await callGemini(homePrompt);
+      const homeResult = await callGemini(homePrompt, apiKey);
 
       // Post-process: deduplicate session IDs across events (keep events separate)
       const rawEvents = homeResult.events || [];

@@ -70,7 +70,32 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
 
-  // Check for existing token
+  // ── Desktop app path ───────────────────────────────────────────────────────
+  if (window.electronAPI) {
+    // Auto-issue a local token so the app never hits the payment gate
+    if (!getToken()) {
+      try {
+        const r = await fetch('/api/auth/desktop-token', { method: 'POST' });
+        if (r.ok) { const { token } = await r.json(); saveToken(token); }
+      } catch {}
+    }
+
+    // Show settings button (only visible in Electron)
+    document.getElementById('btn-settings')?.classList.remove('hidden');
+
+    // If no API key is saved yet, show the first-launch key setup screen
+    const geminiKey = await window.electronAPI.getGeminiKey();
+    if (!geminiKey) {
+      show('screen-apikey');
+    } else {
+      show('screen-app');
+    }
+
+    bindEvents();
+    return;
+  }
+
+  // ── Web app path ───────────────────────────────────────────────────────────
   const { valid } = await verifyToken();
   if (valid) {
     show('screen-app');
@@ -132,6 +157,59 @@ function bindEvents() {
   // Landing CTA: start sorting directly
   document.getElementById('btn-start-free')?.addEventListener('click', () => {
     show('screen-app');
+  });
+
+  // ── API key screen (desktop) ─────────────────────────────────────────────
+
+  // Open API key guide links in the real browser (not inside Electron's window)
+  document.querySelectorAll('.apikey-external-link').forEach(link => {
+    link.addEventListener('click', e => {
+      if (window.electronAPI) {
+        e.preventDefault();
+        window.electronAPI.openExternal(link.href);
+      }
+    });
+  });
+
+  document.getElementById('btn-save-apikey')?.addEventListener('click', async () => {
+    const input = document.getElementById('input-apikey');
+    const key   = input?.value.trim();
+    if (!key) { input?.focus(); return; }
+    await window.electronAPI.setGeminiKey(key);
+    show('screen-app');
+  });
+
+  document.getElementById('btn-skip-apikey')?.addEventListener('click', () => {
+    show('screen-app');
+  });
+
+  // Settings button → back to API key screen
+  document.getElementById('btn-settings')?.addEventListener('click', () => {
+    window.electronAPI?.getGeminiKey().then(k => {
+      const input = document.getElementById('input-apikey');
+      if (input && k) input.value = k;
+    });
+    show('screen-apikey');
+  });
+
+  // ── Download desktop app ─────────────────────────────────────────────────
+
+  document.getElementById('btn-download-app')?.addEventListener('click', async () => {
+    // If already paid, go straight to the download page
+    const { valid } = await verifyToken();
+    if (valid) {
+      window.location.href = '/download';
+      return;
+    }
+    // Otherwise start a download-specific Stripe checkout (full-page redirect)
+    try {
+      const res = await fetch('/api/auth/checkout-download', { method: 'POST' });
+      if (!res.ok) throw new Error();
+      const { url } = await res.json();
+      window.location.href = url;
+    } catch {
+      alert('Could not start checkout. Please try again.');
+    }
   });
 
   // Payment popup: receive success message from /payment-complete

@@ -379,3 +379,58 @@ pre code {
   margin-bottom: 2rem;
 }
 .app-header .logo { font-size: 1.2rem; }
+
+/* ── API key setup screen ─────────────────────────────────────────────────── */
+.apikey-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
+}
+.apikey-mode {
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+.apikey-mode--with  { border-color: var(--accent); background: #f5f3ff; }
+.apikey-mode-icon   { font-size: 1.4rem; flex-shrink: 0; }
+.apikey-mode strong { font-size: 0.9rem; display: block; margin-bottom: 0.35rem; }
+.apikey-mode p      { font-size: 0.82rem; color: var(--muted); line-height: 1.6; }
+.apikey-mode code   { font-size: 0.79rem; }
+
+.apikey-steps {
+  padding-left: 1.3rem;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.7;
+}
+.apikey-steps li { margin-bottom: 0.3rem; }
+
+.apikey-input-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.apikey-input-row input:focus { border-color: var(--accent) !important; }
+
+/* ── Download banner (inside screen-app) ──────────────────────────────────── */
+.download-banner {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 1.1rem 1.4rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+.download-banner-icon { font-size: 1.6rem; flex-shrink: 0; }
+.download-banner-text { flex: 1; min-width: 180px; }
+.download-banner-text strong { font-size: 0.93rem; }
+.download-banner-text p { font-size: 0.83rem; color: var(--muted); margin-top: 0.1rem; }

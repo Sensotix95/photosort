@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Download SortMyPics Desktop App</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="icon" href="/favicon.png" type="image/png">
+  <style>
+    body { display: flex; align-items: flex-start; justify-content: center; padding: 3rem 1.5rem; }
+    .download-card { max-width: 560px; width: 100%; }
+    .download-card h1 { font-size: 1.5rem; margin-bottom: 0.4rem; }
+    .download-card .subtitle { color: var(--muted); font-size: 0.93rem; margin-bottom: 2rem; }
+    .dl-buttons { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem; }
+    .dl-btn { display: flex; align-items: center; gap: 0.65rem; padding: 0.8rem 1.3rem;
+              background: var(--surface); border: 1.5px solid var(--border); border-radius: 10px;
+              cursor: pointer; text-decoration: none; color: var(--text); font-size: 0.93rem;
+              font-weight: 600; transition: border-color 0.15s, box-shadow 0.15s; }
+    .dl-btn:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(91,80,249,0.12); text-decoration: none; }
+    .dl-btn-icon { font-size: 1.6rem; }
+    .dl-btn small { font-weight: 400; color: var(--muted); font-size: 0.8rem; display: block; }
+    .dl-btn--unavailable { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+    .instructions { background: #f5f3ff; border: 1px solid #d1cbfd; border-radius: 10px; padding: 1.25rem 1.4rem; margin-bottom: 1.5rem; }
+    .instructions h3 { font-size: 0.93rem; margin-bottom: 0.75rem; }
+    .instructions ol { padding-left: 1.3rem; font-size: 0.88rem; color: var(--text); line-height: 1.9; }
+    .online-link { text-align: center; }
+    .version-note { font-size: 0.8rem; color: var(--muted); margin-bottom: 1.5rem; }
+    #loading-msg { color: var(--muted); font-size: 0.93rem; }
+  </style>
+</head>
+<body>
+<div class="download-card card">
+
+  <div id="loading-msg">Verifying your purchase…</div>
+
+  <div id="download-content" style="display:none;">
+    <h1>Download SortMyPics</h1>
+    <p class="subtitle">Your purchase unlocks both the desktop app and the online version. Use whichever you prefer.</p>
+
+    <div id="dl-buttons" class="dl-buttons">
+      <!-- Populated by JS -->
+    </div>
+
+    <p id="version-note" class="version-note"></p>
+
+    <div class="instructions">
+      <h3>First launch — how to set up the AI key</h3>
+      <ol>
+        <li>Install the app (double-click the downloaded file, follow the wizard).</li>
+        <li>On first launch, SortMyPics shows a setup screen asking for a Gemini API key.</li>
+        <li>Visit <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>, sign in with Google, and click <strong>"Create API key"</strong>.</li>
+        <li>Paste the key into the setup screen — or skip it to use basic date &amp; location naming.</li>
+      </ol>
+    </div>
+
+    <div class="online-link">
+      <a href="/" class="btn btn-ghost" style="text-decoration:none;">Or use SortMyPics online →</a>
+    </div>
+  </div>
+
+  <div id="error-content" style="display:none;">
+    <h1>Something went wrong</h1>
+    <p style="color:var(--muted); margin-bottom:1.5rem;">We could not verify your purchase. Please contact support or try again.</p>
+    <a href="/" class="btn btn-secondary">Back to SortMyPics</a>
+  </div>
+
+</div>
+
+<script type="module">
+  import { exchangeSessionId, getToken, verifyToken } from '/js/modules/auth.js';
+
+  async function init() {
+    const params    = new URLSearchParams(location.search);
+    const sessionId = params.get('session_id');
+
+    // If arriving from Stripe payment, exchange session for JWT
+    if (sessionId) {
+      history.replaceState({}, '', '/download');
+      try {
+        await exchangeSessionId(sessionId);
+      } catch {
+        showError();
+        return;
+      }
+    } else {
+      // Already have a token? Verify it.
+      const { valid } = await verifyToken();
+      if (!valid) {
+        // No session, no valid token — redirect to checkout
+        window.location.href = '/';
+        return;
+      }
+    }
+
+    showDownloads();
+  }
+
+  async function showDownloads() {
+    document.getElementById('loading-msg').style.display    = 'none';
+    document.getElementById('download-content').style.display = '';
+
+    try {
+      const res  = await fetch('/api/download/urls');
+      const data = await res.json();
+      renderButtons(data);
+    } catch {
+      renderButtons({});
+    }
+  }
+
+  function renderButtons({ windows = '', mac = '', version = '' }) {
+    const container = document.getElementById('dl-buttons');
+    const versionNote = document.getElementById('version-note');
+
+    const winBtn = makeButton('🪟', 'Windows', '.exe installer', windows);
+    const macBtn = makeButton('🍎', 'macOS', '.dmg disk image', mac);
+
+    container.appendChild(winBtn);
+    container.appendChild(macBtn);
+
+    if (version) versionNote.textContent = `Version ${version}`;
+
+    if (!windows && !mac) {
+      versionNote.textContent = 'Desktop builds coming soon — check back shortly.';
+    }
+  }
+
+  function makeButton(icon, os, format, url) {
+    const a = document.createElement('a');
+    a.className = 'dl-btn' + (url ? '' : ' dl-btn--unavailable');
+    a.href = url || '#';
+    if (url) { a.download = ''; }
+    a.innerHTML = `
+      <span class="dl-btn-icon">${icon}</span>
+      <span>
+        Download for ${os}
+        <small>${format}</small>
+      </span>
+    `;
+    return a;
+  }
+
+  function showError() {
+    document.getElementById('loading-msg').style.display  = 'none';
+    document.getElementById('error-content').style.display = '';
+  }
+
+  init();
+</script>
+</body>
+</html>

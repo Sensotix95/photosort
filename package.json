@@ -2,10 +2,14 @@
   "name": "photo-sorter-online",
   "version": "1.0.0",
   "description": "AI-powered photo organizer — photos never leave the user's device",
-  "main": "server/index.js",
+  "main": "electron/main.js",
   "scripts": {
     "start": "node server/index.js",
-    "dev": "node --watch server/index.js"
+    "dev": "node --watch server/index.js",
+    "electron": "electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win",
+    "dist:mac": "electron-builder --mac"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
@@ -14,5 +18,48 @@
     "express": "^4.21.2",
     "jsonwebtoken": "^9.0.2",
     "stripe": "^17.5.0"
+  },
+  "devDependencies": {
+    "electron": "^34.5.8",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.sortmypics.app",
+    "productName": "SortMyPics",
+    "directories": {
+      "output": "dist-electron"
+    },
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "public/**/*",
+      "node_modules/**/*",
+      "package.json",
+      "!node_modules/.cache/**/*",
+      "!**/*.{md,map}",
+      "!.env",
+      "!.env.*",
+      "!dist-electron/**/*",
+      "!Photos*/**",
+      "!Screenshots/**",
+      "!Social Media Posts/**",
+      "!memory/**",
+      "!.claude/**"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "public/favicon.png",
+      "artifactName": "${productName}-Setup-${version}.${ext}"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "public/favicon.png",
+      "artifactName": "${productName}-${version}.${ext}"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "Sensotix95",
+      "repo": "photosort"
+    }
   }
 }

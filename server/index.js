@@ -12,8 +12,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/gemini', require('./routes/gemini'));
+app.use('/api/auth',     require('./routes/auth'));
+app.use('/api/gemini',   require('./routes/gemini'));
+app.use('/api/download', require('./routes/download'));
 
 app.get('/api/health', (_req, res) => res.json({ ok: true, version: '1.0.0' }));
 

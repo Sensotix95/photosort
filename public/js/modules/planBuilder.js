@@ -168,7 +168,17 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
   }
 
   // ── Stage 6: Group by year, call Gemini per year ──────────────────────────
-  onStatus('Asking AI to name your events…');
+
+  // Determine Gemini mode once, before the loop:
+  // - Web: always call the server (server uses its env key)
+  // - Desktop + user key: call the server with X-Gemini-Key header
+  // - Desktop + no key: skip Gemini, use local date/location fallback
+  const isElectron = !!window.electronAPI;
+  const geminiKey  = isElectron ? await window.electronAPI.getGeminiKey() : null;
+  const useGemini  = !isElectron || !!geminiKey;
+
+  onStatus(useGemini ? 'Asking AI to name your events…' : 'Naming folders by date and location…');
+
   const byYear = groupByYear(sessions);
   const yearPlans = {}; // year → { tripNames, events, flatSessionIds }
 
@@ -179,10 +189,18 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
     const llmHomeSessions = homeSessions.filter(s => s.photoCount >= MIN_PHOTOS_FOR_LLM);
     const smallSessions   = homeSessions.filter(s => s.photoCount < MIN_PHOTOS_FOR_LLM);
 
+    if (!useGemini) {
+      yearPlans[year] = localFallbackPlan(trips, homeSessions, smallSessions);
+      continue;
+    }
+
     try {
+      const headers = { 'Content-Type': 'application/json', ...getAuthHeaders() };
+      if (geminiKey) headers['X-Gemini-Key'] = geminiKey;
+
       const res = await fetch('/api/gemini/plan', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        headers,
         body: JSON.stringify({ year, trips, homeSessions: llmHomeSessions }),
       });
       const plan = await res.json();
@@ -197,12 +215,8 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
         homeSessions,
       };
     } catch {
-      // Fallback: everything flat
-      yearPlans[year] = {
-        tripNames: {}, events: [],
-        flatSessionIds: yearSessions.map(s => s.id),
-        trips, homeSessions,
-      };
+      // Network/parse error — fall back to local naming
+      yearPlans[year] = localFallbackPlan(trips, homeSessions, smallSessions);
     }
   }
 
@@ -220,6 +234,37 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
   return assemblePlan({
     yearPlans, sessions, otherPhotos, videos, byYear, videoYears
   });
+}
+
+// ── Local fallback naming (no Gemini key) ─────────────────────────────────────
+// Uses geocoded location names + dates instead of AI event naming.
+// Result quality: "2024-07-15 Rome" instead of "2024-07 Italy Road Trip".
+
+function localFallbackPlan(trips, homeSessions, smallSessions) {
+  // Name trips by their primary location, or generic "Trip" if no GPS
+  const tripNames = {};
+  for (const t of trips) {
+    const loc = (t.locations && t.locations[0]) || t.location || 'Trip';
+    tripNames[t.id] = loc.split(',')[0].trim(); // "Rome, Italy" → "Rome"
+  }
+
+  // Each home session with a location becomes its own event named by that location
+  const events = [];
+  const eventedIds = new Set();
+  for (const s of homeSessions) {
+    if (!s.location) continue;
+    const name = s.location.split(',')[0].trim();
+    events.push({ folder_name: name, session_ids: [s.id] });
+    eventedIds.add(s.id);
+  }
+
+  // Home sessions with no location + small sessions go flat under the year folder
+  const flatSessionIds = [
+    ...homeSessions.filter(s => !eventedIds.has(s.id)).map(s => s.id),
+    ...smallSessions.map(s => s.id),
+  ];
+
+  return { tripNames, events, flatSessionIds, trips, homeSessions };
 }
 
 // ── Plan assembly ─────────────────────────────────────────────────────────────

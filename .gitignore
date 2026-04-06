@@ -1,3 +1,14 @@
 node_modules/
 .env
 *.log
+
+# Electron build output
+dist-electron/
+
+# Local test photo directories — never commit
+Photos*/
+Screenshots/
+Social Media Posts/
+
+# Claude Code local settings
+.claude/settings.local.json

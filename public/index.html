@@ -364,10 +364,74 @@
 
 </div><!-- /screen-gate -->
 
+<!-- ── API key setup screen (desktop app only) ────────────────────────────── -->
+<div id="screen-apikey" class="screen hidden">
+  <div class="app-header">
+    <span class="logo">SortMyPics</span>
+  </div>
+  <div class="container" style="max-width:620px;">
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h2 style="font-size:1.15rem; margin-bottom:0.4rem;">Set up your AI key <span style="font-size:0.8rem; font-weight:400; color:var(--muted);">— optional</span></h2>
+      <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1.5rem;">
+        SortMyPics works in two modes. Adding a free Gemini API key gives you smarter event names.
+      </p>
+
+      <div class="apikey-modes">
+        <div class="apikey-mode apikey-mode--with">
+          <div class="apikey-mode-icon">✨</div>
+          <div>
+            <strong>With API key</strong>
+            <p>Folders named by event:<br><code>2024-07 Italy Road Trip</code><br><code>2024-12 Christmas Eve</code></p>
+          </div>
+        </div>
+        <div class="apikey-mode apikey-mode--without">
+          <div class="apikey-mode-icon">📅</div>
+          <div>
+            <strong>Without API key</strong>
+            <p>Folders named by date &amp; location:<br><code>2024-07 Rome</code><br><code>2024-12 Vienna</code></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:1.5rem;">
+      <h3 style="font-size:1rem; margin-bottom:1rem;">How to get your free Gemini API key</h3>
+      <ol class="apikey-steps">
+        <li>Go to <a href="https://aistudio.google.com/apikey" class="apikey-external-link" target="_blank" rel="noopener">Google AI Studio</a> and sign in with your Google account.</li>
+        <li>Click <strong>"Create API key"</strong>.</li>
+        <li>Select any Google Cloud project (or create a new one — the default works fine).</li>
+        <li>Copy the key and paste it below.</li>
+      </ol>
+      <p style="font-size:0.82rem; color:var(--muted); margin-top:0.75rem;">
+        The free tier gives you 1,500 requests/day — more than enough for photo organizing.
+      </p>
+
+      <div class="apikey-input-row">
+        <input
+          id="input-apikey"
+          type="password"
+          placeholder="AIza…"
+          autocomplete="off"
+          spellcheck="false"
+          style="flex:1; padding:0.6rem 0.85rem; border:1.5px solid var(--border); border-radius:8px; font-size:0.93rem; font-family:monospace; outline:none;"
+        >
+        <button id="btn-save-apikey" class="btn btn-primary">Save &amp; continue</button>
+      </div>
+    </div>
+
+    <div style="text-align:center;">
+      <button id="btn-skip-apikey" class="btn btn-ghost">Skip — use basic mode (date &amp; location naming)</button>
+    </div>
+
+  </div>
+</div>
+
 <!-- ── App: main organizer ────────────────────────────────────────────────── -->
 <div id="screen-app" class="screen hidden">
   <div class="app-header">
     <span class="logo">SortMyPics</span>
+    <button id="btn-settings" class="btn btn-ghost hidden" style="font-size:0.85rem; padding:0.4rem 0.9rem;">⚙ API Key</button>
   </div>
   <div class="container">
 
@@ -395,6 +459,16 @@
 
     <div style="text-align:right; margin-top:0.5rem;">
       <button id="btn-start" class="btn btn-primary" disabled>Start organising →</button>
+    </div>
+
+    <!-- Desktop app download section — hidden in Electron, shown on web -->
+    <div id="download-banner" class="download-banner">
+      <div class="download-banner-icon">💻</div>
+      <div class="download-banner-text">
+        <strong>Want SortMyPics on your desktop?</strong>
+        <p>Download the app — works offline, runs forever on your computer, no browser needed.</p>
+      </div>
+      <button id="btn-download-app" class="btn btn-secondary">Download →</button>
     </div>
 
   </div>
@@ -443,6 +517,12 @@
   </div>
 </div>
 
+<script>
+  // Hide download banner immediately if running inside the desktop app
+  if (window.electronAPI) {
+    document.getElementById('download-banner')?.style.setProperty('display', 'none');
+  }
+</script>
 <script type="module" src="/js/main.js"></script>
 
 </body>
