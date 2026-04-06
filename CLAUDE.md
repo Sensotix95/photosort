@@ -38,15 +38,24 @@ node -e "console.log(require('./package.json').version)"
 - New user-facing features → bump **minor** (1.0.0 → 1.1.0)
 - Breaking changes → bump **major** (1.0.0 → 2.0.0)
 
-**Step 2 — Update package.json, commit, tag, push**
+**Step 2 — Update package.json AND the download page, commit, tag, push**
 
-Edit the `version` field in `package.json`, then:
+Edit the `version` field in `package.json`.
+
+Also update the `DOWNLOADS` constant at the top of the script in `public/download/index.html`
+to the new URLs (the pattern is always the same, just swap the version number):
+```
+windows: 'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-Setup-{version}.exe'
+mac:     'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-{version}.dmg'
+version: '{version}'
+```
+
+Then commit, tag, and push:
 ```bash
-git add package.json
+git add package.json public/download/index.html
 git commit -m "Release v{version}"
 git tag v{version}
-git push
-git push --tags
+git push && git push --tags
 ```
 
 **Step 3 — Tell Patrick what happens next**
@@ -60,12 +69,7 @@ After pushing the tag, say:
 > Once done, the installers appear at:
 > https://github.com/Sensotix95/photosort/releases/tag/v{version}
 >
-> After the build finishes, update these three env vars on your server so the /download page
-> points to the new files:
->
-> DOWNLOAD_URL_WINDOWS=https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-Setup-{version}.exe
-> DOWNLOAD_URL_MAC=https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-{version}.dmg
-> DOWNLOAD_VERSION={version}"
+> The download page already has the correct URLs baked in — no env vars to update."
 
 ### One-time GitHub setup (already done — no action needed)
 
@@ -87,6 +91,6 @@ Releases are published to github.com/Sensotix95/photosort/releases.
 | Gemini key (web) | Server uses `GEMINI_API_KEY` env var |
 | Fallback (no key) | `localFallbackPlan()` in planBuilder.js uses geocoded location + date |
 | Payment | Stripe; one €9.99 purchase covers both online and desktop download |
-| Download URLs | Served via `GET /api/download/urls`; set via env vars on the server |
+| Download URLs | Hardcoded in `DOWNLOADS` const in `public/download/index.html`; updated on each release |
 | Installers | Built by `electron-builder`; Windows NSIS, Mac DMG |
 | Auto-update | `electron-updater` via GitHub Releases (`sortmypics-releases` repo) |
