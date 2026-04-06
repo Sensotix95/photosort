@@ -1,6 +1,6 @@
 // App entry point — handles screen routing and wires all modules together.
 
-import { verifyToken, exchangeSessionId, startCheckout, saveToken } from './modules/auth.js';
+import { verifyToken, exchangeSessionId, startCheckout, saveToken, getToken } from './modules/auth.js';
 import { isSupported, pickFolder, scanDirectory } from './modules/folderPicker.js';
 import { buildPlan } from './modules/planBuilder.js';
 import { renderPreview } from './modules/previewRenderer.js';
@@ -46,8 +46,8 @@ let paymentPopup    = null;
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check browser support
-  if (!isSupported()) {
+  // Check browser support — skip in Electron (always Chromium, always supported)
+  if (!window.electronAPI && !isSupported()) {
     document.getElementById('browser-warning')?.classList.remove('hidden');
     return;
   }

@@ -63,7 +63,8 @@ async function createWindow() {
     minHeight: 520,
     title: 'SortMyPics',
     webPreferences: {
-      preload:          path.join(__dirname, 'preload.js'),
+      // app.getAppPath() resolves correctly both in dev and inside a packaged asar
+      preload:          path.join(app.getAppPath(), 'electron', 'preload.js'),
       contextIsolation: true,
       nodeIntegration:  false,
     },
