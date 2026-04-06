@@ -238,9 +238,13 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
 
 // ── Local fallback naming (no Gemini key) ─────────────────────────────────────
 // Uses geocoded location names + dates instead of AI event naming.
-// Result quality: "2024-07-15 Rome" instead of "2024-07 Italy Road Trip".
+// Home sessions are grouped by city. Within each city:
+//   ≥ 5 photos → {year}/{city}/{year}-{mmdd}/   (date subfolder)
+//   < 5 photos → {year}/{city}/                  (flat inside city folder)
 
-function localFallbackPlan(trips, homeSessions, smallSessions) {
+const LOCAL_EVENT_THRESHOLD = 5;
+
+function localFallbackPlan(trips, homeSessions /*, smallSessions — unused here */) {
   // Name trips by their primary location, or generic "Trip" if no GPS
   const tripNames = {};
   for (const t of trips) {
@@ -248,23 +252,27 @@ function localFallbackPlan(trips, homeSessions, smallSessions) {
     tripNames[t.id] = loc.split(',')[0].trim(); // "Rome, Italy" → "Rome"
   }
 
-  // Each home session with a location becomes its own event named by that location
-  const events = [];
-  const eventedIds = new Set();
+  // Group home sessions by city name
+  const byLocation = {}; // city → [session]
+  const noLocationIds = [];
+
   for (const s of homeSessions) {
-    if (!s.location) continue;
-    const name = s.location.split(',')[0].trim();
-    events.push({ folder_name: name, session_ids: [s.id] });
-    eventedIds.add(s.id);
+    if (!s.location) { noLocationIds.push(s.id); continue; }
+    const city = s.location.split(',')[0].trim();
+    (byLocation[city] = byLocation[city] || []).push(s);
   }
 
-  // Home sessions with no location + small sessions go flat under the year folder
-  const flatSessionIds = [
-    ...homeSessions.filter(s => !eventedIds.has(s.id)).map(s => s.id),
-    ...smallSessions.map(s => s.id),
-  ];
+  // Build locationGroups: big sessions get a date subfolder, small ones go flat
+  const locationGroups = Object.entries(byLocation).map(([name, sessions]) => ({
+    name,
+    bigSessions:  sessions.filter(s => s.photoCount >= LOCAL_EVENT_THRESHOLD),
+    flatSessions: sessions.filter(s => s.photoCount <  LOCAL_EVENT_THRESHOLD),
+  }));
 
-  return { tripNames, events, flatSessionIds, trips, homeSessions };
+  // Sessions without any GPS location fall flat under the year folder
+  const flatSessionIds = noLocationIds;
+
+  return { tripNames, events: [], flatSessionIds, trips, homeSessions, locationGroups };
 }
 
 // ── Plan assembly ─────────────────────────────────────────────────────────────
@@ -274,9 +282,9 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
   const sessionFolders = {}; // sessionId → destPath prefix (for tree preview)
 
   for (const [year, plan_] of Object.entries(yearPlans)) {
-    const { tripNames, events, flatSessionIds, trips, homeSessions } = plan_;
+    const { tripNames, events, flatSessionIds, trips, homeSessions, locationGroups } = plan_;
 
-    // Build event session ID sets
+    // Build event session ID sets (Gemini path)
     const eventBySid = {}; // sessionId → folderName
     for (const ev of events) {
       for (const sid of ev.session_ids) eventBySid[sid] = ev.folder_name;
@@ -302,21 +310,62 @@ function assemblePlan({ yearPlans, sessions, otherPhotos, videos, byYear, videoY
       }
     }
 
-    // Home sessions — events or flat
-    for (const session of homeSessions) {
-      if (emittedByTrip.has(session.id)) continue;
-      if (eventBySid[session.id]) {
-        const evName = eventBySid[session.id];
-        const mmdd = session.date.slice(5, 10);
-        const folder = `${year}/${year}-${mmdd} ${evName}`;
-        for (const photo of session.photos) {
-          plan.push({ handle: photo.handle, destPath: `${folder}/${photo.handle.name}`, folder });
+    if (locationGroups && locationGroups.length > 0) {
+      // ── Local fallback path: city-bucketed structure ──────────────────────
+      // Build a set of all session IDs handled by locationGroups
+      const locationHandled = new Set(
+        locationGroups.flatMap(g => [...g.bigSessions, ...g.flatSessions].map(s => s.id))
+      );
+
+      for (const group of locationGroups) {
+        const cityFolder = `${year}/${group.name}`;
+
+        // Big sessions (≥ threshold) → date subfolder inside city
+        for (const session of group.bigSessions) {
+          if (emittedByTrip.has(session.id)) continue;
+          const mmdd = session.date.slice(5, 10);
+          const folder = `${cityFolder}/${year}-${mmdd}`;
+          for (const photo of session.photos) {
+            plan.push({ handle: photo.handle, destPath: `${folder}/${photo.handle.name}`, folder });
+          }
+          sessionFolders[session.id] = folder;
         }
-        sessionFolders[session.id] = folder;
-      } else {
-        // Flat — directly under year
+
+        // Small sessions (< threshold) → flat inside city folder
+        for (const session of group.flatSessions) {
+          if (emittedByTrip.has(session.id)) continue;
+          for (const photo of session.photos) {
+            plan.push({ handle: photo.handle, destPath: `${cityFolder}/${photo.handle.name}`, folder: cityFolder });
+          }
+        }
+      }
+
+      // Sessions with no GPS location go flat under the year folder
+      for (const session of homeSessions) {
+        if (emittedByTrip.has(session.id)) continue;
+        if (locationHandled.has(session.id)) continue;
         for (const photo of session.photos) {
           plan.push({ handle: photo.handle, destPath: `${year}/${photo.handle.name}`, folder: String(year) });
+        }
+      }
+
+    } else {
+      // ── Gemini path: named events or flat ────────────────────────────────
+      for (const session of homeSessions) {
+        if (emittedByTrip.has(session.id)) continue;
+        if (eventBySid[session.id]) {
+          const evName = eventBySid[session.id];
+          const mmdd = session.date.slice(5, 10);
+          const folder = `${year}/${year}-${mmdd} ${evName}`;
+          for (const photo of session.photos) {
+            plan.push({ handle: photo.handle, destPath: `${folder}/${photo.handle.name}`, folder });
+          }
+          sessionFolders[session.id] = folder;
+        } else {
+          // Flat — directly under year
+          for (const photo of session.photos) {
+            plan.push({ handle: photo.handle, destPath: `${year}/${photo.handle.name}`, folder: String(year) });
+          }
         }
       }
     }

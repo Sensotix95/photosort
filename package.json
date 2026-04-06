@@ -1,6 +1,6 @@
 {
   "name": "photo-sorter-online",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "AI-powered photo organizer — photos never leave the user's device",
   "main": "electron/main.js",
   "scripts": {
