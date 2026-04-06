@@ -4,7 +4,7 @@
 
 SortMyPics is an AI photo organizer sold at €9.99 one-time. It runs in the browser (Chrome/Edge)
 using the File System Access API so photos never leave the user's device. The owner is Patrick
-(GitHub: Sensotix95). The web app is hosted as a Node.js/Express server. There is also a
+(GitHub: Sensotix95). The web app is hosted on Railway at sortmypics.com. There is also a
 downloadable Electron desktop app that wraps the exact same code.
 
 ---
@@ -13,23 +13,23 @@ downloadable Electron desktop app that wraps the exact same code.
 
 The project ships an Electron desktop app alongside the web version. GitHub Actions
 automatically builds the Windows (.exe) and Mac (.dmg) installers whenever a version tag is pushed.
+Releases publish directly (not as drafts) — no manual steps on GitHub needed.
 
 ### When to offer a release
 
 At the end of any session where you made **functional changes** — new features, bug fixes,
 improvements to the sorting algorithm, planBuilder, UI screens, or the Electron wrapper — ask:
 
-> "Want me to release a new version of the desktop app? I'll bump the version number, push a
-> tag, and GitHub Actions will build the Windows and Mac installers automatically (~10 min)."
+> "Want me to release a new version of the desktop app? I'll bump the version number, update
+> the download page, and push a tag — GitHub Actions builds everything automatically (~10 min)."
 
 **Skip the offer** if the session only touched: blog posts, SEO meta tags, marketing copy,
 CSS polish, or the /patrick dev page — changes that don't affect the desktop app's behaviour.
 
-### How to do the release (handle everything when Patrick says yes)
+### How to do the release — do ALL of this when Patrick says yes
 
 **Step 1 — Decide the version bump**
 
-Check the current version first:
 ```bash
 node -e "console.log(require('./package.json').version)"
 ```
@@ -38,19 +38,22 @@ node -e "console.log(require('./package.json').version)"
 - New user-facing features → bump **minor** (1.0.0 → 1.1.0)
 - Breaking changes → bump **major** (1.0.0 → 2.0.0)
 
-**Step 2 — Update package.json AND the download page, commit, tag, push**
+**Step 2 — Update two files**
 
-Edit the `version` field in `package.json`.
+1. `package.json` — change the `version` field to the new version.
 
-Also update the `DOWNLOADS` constant at the top of the script in `public/download/index.html`
-to the new URLs (the pattern is always the same, just swap the version number):
-```
-windows: 'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-Setup-{version}.exe'
-mac:     'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-{version}.dmg'
-version: '{version}'
-```
+2. `public/download/index.html` — update the `DOWNLOADS` constant near the top of the script
+   (just swap the version number in all three lines):
+   ```js
+   const DOWNLOADS = {
+     windows: 'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-Setup-{version}.exe',
+     mac:     'https://github.com/Sensotix95/photosort/releases/download/v{version}/SortMyPics-{version}.dmg',
+     version: '{version}',
+   };
+   ```
 
-Then commit, tag, and push:
+**Step 3 — Commit, tag, push**
+
 ```bash
 git add package.json public/download/index.html
 git commit -m "Release v{version}"
@@ -58,24 +61,21 @@ git tag v{version}
 git push && git push --tags
 ```
 
-**Step 3 — Tell Patrick what happens next**
+**Step 4 — Tell Patrick what happens next**
 
-After pushing the tag, say:
-
-> "Tag pushed. GitHub Actions is now building the Windows and Mac installers — takes about
-> 10 minutes. You can watch progress at:
-> https://github.com/Sensotix95/photosort/actions
+> "Done. GitHub Actions is building the Windows and Mac installers now — takes about 10 minutes.
+> Watch progress at: https://github.com/Sensotix95/photosort/actions
 >
-> Once done, the installers appear at:
-> https://github.com/Sensotix95/photosort/releases/tag/v{version}
->
-> The download page already has the correct URLs baked in — no env vars to update."
+> Once complete the release appears at: https://github.com/Sensotix95/photosort/releases
+> The download page already has the correct URLs baked in — nothing else to do."
 
-### One-time GitHub setup (already done — no action needed)
+### Setup notes (already done — no action needed)
 
-The workflow uses `GITHUB_TOKEN` which GitHub Actions provides automatically.
-No Personal Access Token or extra secrets required.
-Releases are published to github.com/Sensotix95/photosort/releases.
+- Workflow uses `GITHUB_TOKEN` (auto-provided by GitHub Actions, no PAT or secrets needed)
+- Repository workflow permissions must be set to **"Read and write"** — already configured at
+  github.com/Sensotix95/photosort/settings/actions
+- `"releaseType": "release"` in package.json publish config means releases publish directly,
+  never as drafts — no manual "Publish release" click needed on GitHub
 
 ---
 
@@ -93,4 +93,4 @@ Releases are published to github.com/Sensotix95/photosort/releases.
 | Payment | Stripe; one €9.99 purchase covers both online and desktop download |
 | Download URLs | Hardcoded in `DOWNLOADS` const in `public/download/index.html`; updated on each release |
 | Installers | Built by `electron-builder`; Windows NSIS, Mac DMG |
-| Auto-update | `electron-updater` via GitHub Releases (`sortmypics-releases` repo) |
+| Releases | Published to github.com/Sensotix95/photosort/releases |

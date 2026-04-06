@@ -59,7 +59,8 @@
     "publish": {
       "provider": "github",
       "owner": "Sensotix95",
-      "repo": "photosort"
+      "repo": "photosort",
+      "releaseType": "release"
     }
   }
 }
