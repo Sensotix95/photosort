@@ -11,6 +11,11 @@ import { executePlan } from './modules/fileCopier.js';
 function show(id) {
   document.querySelectorAll('.screen').forEach(el => el.classList.add('hidden'));
   document.getElementById(id)?.classList.remove('hidden');
+  // On unsupported browsers, replace the folder pickers with the not-supported message
+  if (id === 'screen-app' && !window.electronAPI && !isSupported()) {
+    document.getElementById('browser-unsupported')?.classList.remove('hidden');
+    document.getElementById('browser-picker-content')?.classList.add('hidden');
+  }
 }
 
 function setStatus(msg) {
@@ -46,12 +51,6 @@ let paymentPopup    = null;
 // ── Init ──────────────────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
-  // Check browser support — skip in Electron (always Chromium, always supported)
-  if (!window.electronAPI && !isSupported()) {
-    document.getElementById('browser-warning')?.classList.remove('hidden');
-    return;
-  }
-
   // Handle Stripe redirect back with ?session_id=xxx (popup-blocked fallback)
   const params    = new URLSearchParams(location.search);
   const sessionId = params.get('session_id');
@@ -279,7 +278,8 @@ function bindEvents() {
       currentPlan = await buildPlan(
         files,
         (msg) => setStatus(msg),
-        ({ stage, done, total }) => setProgress(stage, done, total)
+        ({ stage, done, total }) => setProgress(stage, done, total),
+        { filterScreenshots: document.getElementById('chk-filter-screenshots')?.checked ?? false }
       );
 
       show('screen-preview');

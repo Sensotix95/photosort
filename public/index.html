@@ -150,13 +150,6 @@
 </head>
 <body>
 
-<!-- Browser compatibility warning (hidden by default) -->
-<div id="browser-warning" class="hidden">
-  <strong>Browser not supported</strong><br>
-  SortMyPics requires Chrome or Edge (version 86+) for local file access.<br>
-  Firefox does not yet support the File System Access API.
-</div>
-
 <!-- ── Gate: landing / buy page ──────────────────────────────────────────── -->
 <div id="screen-gate" class="screen">
 
@@ -438,41 +431,77 @@
   </div>
   <div class="container">
 
-    <div class="card">
-      <h2>1. Where are your photos?</h2>
-      <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
-        Select the folder containing your unsorted photos. Nothing will be changed here — photos are only read, never moved or deleted.
-      </p>
-      <div class="folder-row">
-        <button id="btn-pick-source" class="btn btn-secondary">Choose source folder</button>
-        <span id="source-folder-name" class="folder-name">None selected</span>
+    <!-- Shown on unsupported browsers instead of the folder pickers -->
+    <div id="browser-unsupported" class="hidden">
+      <div class="card">
+        <h2 style="margin-bottom:0.75rem;">Browser not supported</h2>
+        <p style="color:var(--muted); margin-bottom:1rem;">
+          SortMyPics Online uses the <strong>File System Access API</strong> to read and write your photos
+          directly on your computer — without uploading them anywhere. Your current browser does not support this API.
+        </p>
+        <p style="margin-bottom:1.5rem;">
+          <strong>Supported browsers:</strong>&ensp;Google Chrome (v86+) &nbsp;&middot;&nbsp; Microsoft Edge (v86+)
+        </p>
+        <hr style="border:none; border-top:1px solid var(--border); margin:1.5rem 0;">
+        <h3 style="font-size:1rem; margin-bottom:0.5rem;">Use the desktop app instead</h3>
+        <p style="color:var(--muted); margin-bottom:1rem;">
+          The SortMyPics desktop app works on any Windows or Mac computer — no browser required.
+          Same AI, same smart folder names, runs fully offline on your device.
+        </p>
+        <a href="/download" class="btn btn-primary">Download the desktop app →</a>
       </div>
     </div>
 
-    <div id="step-dest" class="card hidden">
-      <h2>2. Where should the sorted photos go?</h2>
-      <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
-        Select an empty folder (or create a new one) where the organised copy will be saved. Your originals stay untouched.
-      </p>
-      <div class="folder-row">
-        <button id="btn-pick-dest" class="btn btn-secondary">Choose destination folder</button>
-        <span id="dest-folder-name" class="folder-name">None selected</span>
-      </div>
-    </div>
+    <!-- Folder picker UI — hidden on unsupported browsers -->
+    <div id="browser-picker-content">
 
-    <div style="text-align:right; margin-top:0.5rem;">
-      <button id="btn-start" class="btn btn-primary" disabled>Start organising →</button>
-    </div>
-
-    <!-- Desktop app download section — hidden in Electron, shown on web -->
-    <div id="download-banner" class="download-banner">
-      <div class="download-banner-icon">💻</div>
-      <div class="download-banner-text">
-        <strong>Want SortMyPics on your desktop?</strong>
-        <p>Download the app — works offline, runs forever on your computer, no browser needed.</p>
+      <div class="card">
+        <h2>1. Where are your photos?</h2>
+        <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
+          Select the folder containing your unsorted photos. Nothing will be changed here — photos are only read, never moved or deleted.
+        </p>
+        <div class="folder-row">
+          <button id="btn-pick-source" class="btn btn-secondary">Choose source folder</button>
+          <span id="source-folder-name" class="folder-name">None selected</span>
+        </div>
       </div>
-      <button id="btn-download-app" class="btn btn-secondary">Download →</button>
-    </div>
+
+      <div id="step-dest" class="card hidden">
+        <h2>2. Where should the sorted photos go?</h2>
+        <p style="font-size:0.88rem; color:var(--muted); margin-bottom:0.9rem;">
+          Select an empty folder (or create a new one) where the organised copy will be saved. Your originals stay untouched.
+        </p>
+        <div class="folder-row">
+          <button id="btn-pick-dest" class="btn btn-secondary">Choose destination folder</button>
+          <span id="dest-folder-name" class="folder-name">None selected</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:0.5rem; padding:0.9rem 1.2rem;">
+        <label style="display:flex; align-items:flex-start; gap:0.75rem; cursor:pointer;">
+          <input type="checkbox" id="chk-filter-screenshots" style="margin-top:0.2rem; flex-shrink:0;">
+          <div>
+            <div style="font-weight:600; margin-bottom:0.2rem;">Filter out screenshots &amp; documents</div>
+            <div style="font-size:0.85rem; color:var(--muted);">Removes receipts, document scans, and phone screenshots from your sorted photos. Takes significantly longer for large photo libraries.</div>
+          </div>
+        </label>
+      </div>
+
+      <div style="text-align:right; margin-top:0.5rem;">
+        <button id="btn-start" class="btn btn-primary" disabled>Start organising →</button>
+      </div>
+
+      <!-- Desktop app download section — hidden in Electron, shown on web -->
+      <div id="download-banner" class="download-banner">
+        <div class="download-banner-icon">💻</div>
+        <div class="download-banner-text">
+          <strong>Want SortMyPics on your desktop?</strong>
+          <p>Download the app — works offline, runs forever on your computer, no browser needed.</p>
+        </div>
+        <button id="btn-download-app" class="btn btn-secondary">Download →</button>
+      </div>
+
+    </div><!-- /browser-picker-content -->
 
   </div>
 </div>
