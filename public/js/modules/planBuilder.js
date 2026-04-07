@@ -47,7 +47,7 @@ class ClipWorkerPool {
 
       w.onmessage = ({ data }) => {
         if (data.type === 'READY')    { resolve(); return; }
-        if (data.type === 'PROGRESS') { this._progressCb?.(data); return; }
+        if (data.type === 'PROGRESS') { if (slot.idx === 0) this._progressCb?.(data); return; }
         if (data.type === 'ERROR') {
           const p = slot.pending.get(data.id);
           if (p) { slot.pending.delete(data.id); p.reject(new Error(data.message)); }
@@ -197,40 +197,61 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
   onStatus(`Classifying ${images.length} photos…`);
   const classified = []; // { entry, file, label }
 
+  // Limit outer concurrency to avoid overwhelming IndexedDB with thousands of
+  // simultaneous transactions. Workers still run WORKER_COUNT tasks in parallel;
+  // this just caps how many tasks are in-flight at once in the surrounding IDB layer.
+  const OUTER_CONCURRENCY = WORKER_COUNT * 4;
+  let inFlight = 0;
+  const waitQueue = [];
+  const acquire = () => {
+    if (inFlight < OUTER_CONCURRENCY) { inFlight++; return Promise.resolve(); }
+    return new Promise(r => waitQueue.push(r));
+  };
+  const release = () => {
+    inFlight--;
+    if (waitQueue.length) { inFlight++; waitQueue.shift()(); }
+  };
+
   let clipDone = 0;
   await Promise.all(images.map(async (entry) => {
-    let file;
-    try { file = await entry.handle.getFile(); } catch {
+    await acquire();
+    try {
+      let file;
+      try { file = await entry.handle.getFile(); } catch {
+        classified.push({ entry, file: null, label: 'real' });
+        return;
+      }
+
+      const fileKey = makeFileKey(file);
+      let label, score;
+
+      const cached = await getCached(fileKey);
+      if (cached) {
+        ({ label, score } = cached);
+      } else {
+        // Skip CLIP for HEIC — classify as real (browser can't decode HEIC)
+        if (entry.ext === '.heic') {
+          label = 'real'; score = 1;
+        } else {
+          try {
+            const res = await pool.classify(file);
+            label = res.label; score = res.score;
+          } catch {
+            label = 'real'; score = 1; // fail-safe: treat as real photo
+          }
+        }
+        await putCached(fileKey, label, score);
+      }
+
+      classified.push({ entry, file, label });
+    } catch {
+      // Catch-all: an unexpected IDB or file error on this image — treat as real and continue.
       classified.push({ entry, file: null, label: 'real' });
+    } finally {
       clipDone++;
       onProgress({ stage: 'clip', done: clipDone, total: images.length });
-      return;
+      release();
     }
-
-    const fileKey = makeFileKey(file);
-    let label, score;
-
-    const cached = await getCached(fileKey);
-    if (cached) {
-      ({ label, score } = cached);
-    } else {
-      // Skip CLIP for HEIC — classify as real (browser can't decode HEIC)
-      if (entry.ext === '.heic') {
-        label = 'real'; score = 1;
-      } else {
-        try {
-          const res = await pool.classify(file);
-          label = res.label; score = res.score;
-        } catch {
-          label = 'real'; score = 1; // fail-safe: treat as real photo
-        }
-      }
-      await putCached(fileKey, label, score);
-    }
-
-    classified.push({ entry, file, label });
-    clipDone++;
-    onProgress({ stage: 'clip', done: clipDone, total: images.length });
   }));
 
   const realPhotos = classified.filter(c => c.label === 'real');
