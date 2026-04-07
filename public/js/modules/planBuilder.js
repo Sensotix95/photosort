@@ -10,6 +10,16 @@ import { getAuthHeaders } from './auth.js';
 const VIDEO_EXT        = new Set(['.mp4', '.mov', '.avi', '.mkv', '.m4v']);
 const VIDEO_BUFFER_DAYS = 1; // match videos to events within ±this many days
 
+// Safety-net timeout: if any single async operation hangs (IDB, file read, worker
+// inference), this ensures it fails fast rather than blocking the pipeline forever.
+function withTimeout(promise, ms) {
+  let id;
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => { id = setTimeout(() => reject(new Error('timeout')), ms); }),
+  ]).finally(() => clearTimeout(id));
+}
+
 // ── CLIP Worker Pool ──────────────────────────────────────────────────────────
 // Runs WORKER_COUNT parallel workers, each recycled every RECYCLE_AFTER images
 // to prevent memory from accumulating and crashing the worker.
@@ -119,13 +129,31 @@ class ClipWorkerPool {
       return;
     }
 
+    // If the worker hangs on this image (no crash, just stuck inference),
+    // recycle it after 20s so the pool slot doesn't stay occupied forever.
+    const timeoutId = setTimeout(() => {
+      if (!slot.pending.has(id)) return;
+      slot.pending.delete(id);
+      if (!settled) { settled = true; reject(new Error('classify timeout')); }
+      if (!slot.recycling) {
+        slot.recycling      = true;
+        slot.recyclePromise = this._bootWorker(slot).finally(() => {
+          slot.recycling      = false;
+          slot.recyclePromise = null;
+          this._drain();
+        });
+      }
+    }, 20_000);
+
     // Upgrade to full callbacks now that we have the buffer.
     slot.pending.set(id, {
       resolve: data => {
+        clearTimeout(timeoutId);
         if (!settled) { settled = true; resolve(data); }
         this._afterClassify(slot);
       },
       reject: err => {
+        clearTimeout(timeoutId);
         if (!settled) { settled = true; reject(err); }
         this._drain();
       },
@@ -216,36 +244,38 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
   await Promise.all(images.map(async (entry) => {
     await acquire();
     try {
-      let file;
-      try { file = await entry.handle.getFile(); } catch {
-        classified.push({ entry, file: null, label: 'real' });
-        return;
-      }
-
-      const fileKey = makeFileKey(file);
-      let label, score;
-
-      const cached = await getCached(fileKey);
-      if (cached) {
-        ({ label, score } = cached);
-      } else {
-        // Skip CLIP for HEIC — classify as real (browser can't decode HEIC)
-        if (entry.ext === '.heic') {
-          label = 'real'; score = 1;
-        } else {
-          try {
-            const res = await pool.classify(file);
-            label = res.label; score = res.score;
-          } catch {
-            label = 'real'; score = 1; // fail-safe: treat as real photo
-          }
+      await withTimeout((async () => {
+        let file;
+        try { file = await entry.handle.getFile(); } catch {
+          classified.push({ entry, file: null, label: 'real' });
+          return;
         }
-        await putCached(fileKey, label, score);
-      }
 
-      classified.push({ entry, file, label });
+        const fileKey = makeFileKey(file);
+        let label, score;
+
+        const cached = await getCached(fileKey);
+        if (cached) {
+          ({ label, score } = cached);
+        } else {
+          // Skip CLIP for HEIC — classify as real (browser can't decode HEIC)
+          if (entry.ext === '.heic') {
+            label = 'real'; score = 1;
+          } else {
+            try {
+              const res = await pool.classify(file);
+              label = res.label; score = res.score;
+            } catch {
+              label = 'real'; score = 1; // fail-safe: treat as real photo
+            }
+          }
+          await putCached(fileKey, label, score);
+        }
+
+        classified.push({ entry, file, label });
+      })(), 30_000);
     } catch {
-      // Catch-all: an unexpected IDB or file error on this image — treat as real and continue.
+      // Covers thrown errors AND the 30s timeout — treat as real and continue.
       classified.push({ entry, file: null, label: 'real' });
     } finally {
       clipDone++;

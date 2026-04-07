@@ -33,6 +33,7 @@ export async function getCached(fileKey) {
     const req = tx.objectStore(STORE_NAME).get(fileKey);
     req.onsuccess = () => resolve(req.result ?? null);
     req.onerror   = () => reject(req.error);
+    tx.onabort    = () => reject(tx.error ?? new Error('IDB transaction aborted'));
   });
 }
 
@@ -43,6 +44,7 @@ export async function putCached(fileKey, label, score) {
     const req = tx.objectStore(STORE_NAME).put({ fileKey, label, score, cachedAt: Date.now() });
     req.onsuccess = () => resolve();
     req.onerror   = () => reject(req.error);
+    tx.onabort    = () => reject(tx.error ?? new Error('IDB transaction aborted'));
   });
 }
 
