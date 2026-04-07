@@ -6,7 +6,7 @@ const app = express();
 
 // Stripe webhook needs raw body — mount before express.json()
 app.use('/api/auth/webhook', express.raw({ type: 'application/json' }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Static frontend files
 app.use(express.static(path.join(__dirname, '../public')));
