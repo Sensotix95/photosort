@@ -198,7 +198,7 @@ function bindEvents() {
 
   // ── Download desktop app ─────────────────────────────────────────────────
 
-  document.getElementById('btn-download-app')?.addEventListener('click', async () => {
+  async function handleDownloadClick() {
     // If already paid, go straight to the download page
     const { valid } = await verifyToken();
     if (valid) {
@@ -214,7 +214,10 @@ function bindEvents() {
     } catch {
       alert('Could not start checkout. Please try again.');
     }
-  });
+  }
+
+  document.getElementById('btn-download-app')?.addEventListener('click', handleDownloadClick);
+  document.getElementById('btn-download-unsupported')?.addEventListener('click', handleDownloadClick);
 
   // Payment popup: receive success message from /payment-complete
   window.addEventListener('message', async (e) => {
