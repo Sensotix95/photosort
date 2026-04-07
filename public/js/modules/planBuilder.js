@@ -10,56 +10,169 @@ import { getAuthHeaders } from './auth.js';
 const VIDEO_EXT        = new Set(['.mp4', '.mov', '.avi', '.mkv', '.m4v']);
 const VIDEO_BUFFER_DAYS = 1; // match videos to events within ±this many days
 
-// ── CLIP Worker bridge ────────────────────────────────────────────────────────
+// ── CLIP Worker Pool ──────────────────────────────────────────────────────────
+// Runs WORKER_COUNT parallel workers, each recycled every RECYCLE_AFTER images
+// to prevent memory from accumulating and crashing the worker.
 
-let worker = null;
-let workerReady = false;
-const pending = new Map(); // id → { resolve, reject }
-let msgCounter = 0;
+const WORKER_COUNT  = Math.min(Math.max(navigator.hardwareConcurrency || 2, 2), 4);
+const RECYCLE_AFTER = 100;
 
-function initWorker(onModelProgress) {
-  return new Promise((resolve, reject) => {
-    worker = new Worker('/js/workers/clipWorker.js', { type: 'module' });
-    worker.onmessage = ({ data }) => {
-      if (data.type === 'READY') { workerReady = true; resolve(); return; }
-      if (data.type === 'PROGRESS') { onModelProgress?.(data); return; }
-      if (data.type === 'ERROR') {
-        const p = pending.get(data.id);
-        if (p) { p.reject(new Error(data.message)); pending.delete(data.id); }
-        return;
-      }
-      const p = pending.get(data.id ?? data.sessionId);
-      if (p) { p.resolve(data); pending.delete(data.id ?? data.sessionId); }
-    };
-    worker.onerror = e => reject(new Error(e.message));
-    worker.postMessage({ type: 'INIT' });
-  });
-}
-
-async function classifyImage(file) {
-  const id  = String(++msgCounter);
-  const buf = await file.arrayBuffer();
-  return new Promise((resolve, reject) => {
-    pending.set(id, { resolve, reject });
-    worker.postMessage({ type: 'CLASSIFY', id, buffer: buf, mimeType: file.type || 'image/jpeg' }, [buf]);
-  });
-}
-
-async function tagSession(sessionId, files) {
-  const buffers   = [];
-  const mimeTypes = [];
-  // Pre-read files before transfer (can't re-read after transfer)
-  for (const f of files) {
-    buffers.push(await f.arrayBuffer());
-    mimeTypes.push(f.type || 'image/jpeg');
+class ClipWorkerPool {
+  constructor() {
+    this._slots      = [];  // [{ worker, pending, msgId, imageCount, recycling, recyclePromise }]
+    this._queue      = [];  // [{ file, resolve, reject }]
+    this._progressCb = null;
   }
-  return new Promise((resolve, reject) => {
-    pending.set(sessionId, { resolve, reject });
-    worker.postMessage(
-      { type: 'TAG_SESSION', sessionId, buffers, mimeTypes },
-      buffers
+
+  async init(onProgress) {
+    this._progressCb = onProgress;
+    await Promise.all(
+      Array.from({ length: WORKER_COUNT }, (_, i) => this._spawnSlot(i))
     );
-  });
+  }
+
+  _spawnSlot(idx) {
+    const slot = { idx, worker: null, pending: new Map(), msgId: 0, imageCount: 0, recycling: false, recyclePromise: null };
+    this._slots[idx] = slot;
+    return this._bootWorker(slot);
+  }
+
+  _bootWorker(slot) {
+    return new Promise((resolve, reject) => {
+      if (slot.worker) { try { slot.worker.terminate(); } catch {} }
+      const w         = new Worker('/js/workers/clipWorker.js', { type: 'module' });
+      slot.worker     = w;
+      slot.pending    = new Map();
+      slot.imageCount = 0;
+
+      w.onmessage = ({ data }) => {
+        if (data.type === 'READY')    { resolve(); return; }
+        if (data.type === 'PROGRESS') { this._progressCb?.(data); return; }
+        if (data.type === 'ERROR') {
+          const p = slot.pending.get(data.id);
+          if (p) { slot.pending.delete(data.id); p.reject(new Error(data.message)); }
+          this._drain();
+          return;
+        }
+        const key = data.id ?? data.sessionId;
+        const p   = slot.pending.get(key);
+        if (p) { slot.pending.delete(key); p.resolve(data); }
+      };
+
+      w.onerror = e => {
+        const err = new Error(e.message || 'Worker crashed');
+        for (const [, p] of slot.pending) { if (p?.reject) p.reject(err); }
+        slot.pending.clear();
+        reject(err); // no-op if already resolved
+        // Auto-restart
+        slot.recycling = true;
+        slot.recyclePromise = this._bootWorker(slot).finally(() => {
+          slot.recycling      = false;
+          slot.recyclePromise = null;
+          this._drain();
+        });
+      };
+
+      w.postMessage({ type: 'INIT' });
+    });
+  }
+
+  classify(file) {
+    return new Promise((resolve, reject) => {
+      this._queue.push({ file, resolve, reject });
+      this._drain();
+    });
+  }
+
+  _drain() {
+    for (const slot of this._slots) {
+      if (!this._queue.length) break;
+      if (slot.pending.size > 0 || slot.recycling) continue;
+      this._dispatch(slot, this._queue.shift());
+    }
+  }
+
+  async _dispatch(slot, { file, resolve, reject }) {
+    const id = String(++slot.msgId);
+
+    // Reserve the slot synchronously before the first await so _drain skips it.
+    // Also store reject immediately so a crash during arrayBuffer() can still fail the task.
+    let settled = false;
+    slot.pending.set(id, {
+      resolve: () => {},
+      reject:  err => { if (!settled) { settled = true; reject(err); } },
+    });
+
+    let buf;
+    try {
+      buf = await file.arrayBuffer();
+    } catch (err) {
+      slot.pending.delete(id);
+      if (!settled) { settled = true; reject(err); }
+      this._drain();
+      return;
+    }
+
+    if (settled) {
+      // Worker crashed while the file was being read; reject was already called by onerror.
+      this._drain();
+      return;
+    }
+
+    // Upgrade to full callbacks now that we have the buffer.
+    slot.pending.set(id, {
+      resolve: data => {
+        if (!settled) { settled = true; resolve(data); }
+        this._afterClassify(slot);
+      },
+      reject: err => {
+        if (!settled) { settled = true; reject(err); }
+        this._drain();
+      },
+    });
+    slot.worker.postMessage(
+      { type: 'CLASSIFY', id, buffer: buf, mimeType: file.type || 'image/jpeg' },
+      [buf]
+    );
+  }
+
+  _afterClassify(slot) {
+    slot.imageCount++;
+    if (slot.imageCount >= RECYCLE_AFTER) {
+      // Proactively restart to free accumulated memory before it can crash.
+      slot.recycling      = true;
+      slot.recyclePromise = this._bootWorker(slot).finally(() => {
+        slot.recycling      = false;
+        slot.recyclePromise = null;
+        this._drain();
+      });
+    } else {
+      this._drain();
+    }
+  }
+
+  // Wait for any in-progress recycles before using slots for tagSession.
+  awaitRecycles() {
+    return Promise.all(this._slots.map(s => s.recyclePromise ?? Promise.resolve()));
+  }
+
+  async tagSession(sessionId, files) {
+    await this.awaitRecycles();
+    const slot = this._slots.find(s => !s.recycling && s.pending.size === 0) ?? this._slots[0];
+    const buffers   = [];
+    const mimeTypes = [];
+    for (const f of files) {
+      buffers.push(await f.arrayBuffer());
+      mimeTypes.push(f.type || 'image/jpeg');
+    }
+    return new Promise((resolve, reject) => {
+      slot.pending.set(sessionId, { resolve, reject });
+      slot.worker.postMessage(
+        { type: 'TAG_SESSION', sessionId, buffers, mimeTypes },
+        buffers
+      );
+    });
+  }
 }
 
 // ── Main pipeline ─────────────────────────────────────────────────────────────
@@ -76,17 +189,23 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
 
   // ── Stage 1: CLIP trash detection ─────────────────────────────────────────
   onStatus('Loading AI model (first run: ~350MB download, cached forever after)…');
-  await initWorker(info => {
+  const pool = new ClipWorkerPool();
+  await pool.init(info => {
     if (info.total) onProgress({ stage: 'model', done: info.loaded, total: info.total });
   });
 
   onStatus(`Classifying ${images.length} photos…`);
-  const classified = []; // { entry, file, label, exif }
+  const classified = []; // { entry, file, label }
 
   let clipDone = 0;
-  for (const entry of images) {
+  await Promise.all(images.map(async (entry) => {
     let file;
-    try { file = await entry.handle.getFile(); } catch { clipDone++; continue; }
+    try { file = await entry.handle.getFile(); } catch {
+      classified.push({ entry, file: null, label: 'real' });
+      clipDone++;
+      onProgress({ stage: 'clip', done: clipDone, total: images.length });
+      return;
+    }
 
     const fileKey = makeFileKey(file);
     let label, score;
@@ -100,7 +219,7 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
         label = 'real'; score = 1;
       } else {
         try {
-          const res = await classifyImage(file);
+          const res = await pool.classify(file);
           label = res.label; score = res.score;
         } catch {
           label = 'real'; score = 1; // fail-safe: treat as real photo
@@ -112,7 +231,7 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
     classified.push({ entry, file, label });
     clipDone++;
     onProgress({ stage: 'clip', done: clipDone, total: images.length });
-  }
+  }));
 
   const realPhotos = classified.filter(c => c.label === 'real');
   const otherPhotos = classified.filter(c => c.label === 'other');
@@ -158,7 +277,7 @@ export async function buildPlan(scannedFiles, onStatus, onProgress) {
 
     if (imageFiles.length > 0) {
       try {
-        const res = await tagSession(s.id, imageFiles);
+        const res = await pool.tagSession(s.id, imageFiles);
         s.content_tags = res.tags;
       } catch {
         s.content_tags = [];
