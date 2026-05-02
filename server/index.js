@@ -4,6 +4,17 @@ const path = require('path');
 
 const app = express();
 
+// Railway/proxy deployments forward original host/protocol headers
+app.set('trust proxy', true);
+
+// Canonical host redirect: apex -> www, preserving path and query
+app.use((req, res, next) => {
+  if (req.hostname === 'sortmypics.com') {
+    return res.redirect(301, `https://www.sortmypics.com${req.originalUrl}`);
+  }
+  next();
+});
+
 // Stripe webhook needs raw body — mount before express.json()
 app.use('/api/auth/webhook', express.raw({ type: 'application/json' }));
 app.use(express.json({ limit: '10mb' }));
