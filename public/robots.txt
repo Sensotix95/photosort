@@ -25,4 +25,4 @@ Allow: /
 User-agent: Applebot
 Allow: /
 
-Sitemap: https://sortmypics.com/sitemap.xml
+Sitemap: https://www.sortmypics.com/sitemap.xml
