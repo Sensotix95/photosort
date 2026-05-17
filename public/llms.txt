@@ -5,10 +5,10 @@
 ## Key Pages
 
 - [Homepage](https://www.sortmypics.com/): Overview and get started
-- [Features](https://www.sortmypics.com/features): Full feature list
-- [How It Works](https://www.sortmypics.com/how-it-works): Step-by-step explanation
-- [FAQ](https://www.sortmypics.com/faq): Common questions and answers
-- [Pricing](https://www.sortmypics.com/pricing): Plans and pricing
+- [Features](https://www.sortmypics.com/features/): Full feature list
+- [How It Works](https://www.sortmypics.com/how-it-works/): Step-by-step explanation
+- [FAQ](https://www.sortmypics.com/faq/): Common questions and answers
+- [Pricing](https://www.sortmypics.com/pricing/): Plans and pricing
 - [Blog](https://www.sortmypics.com/blog/): Guides and tutorials
 
 ## What SortMyPics Does
